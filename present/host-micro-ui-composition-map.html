@@ -1,0 +1,2084 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Host-Micro UI Composition Map</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f9fb;
+        --surface: #ffffff;
+        --ink: #16212d;
+        --muted: #5f6d7a;
+        --line: #dce4ec;
+        --line-strong: #c5d1dc;
+        --host: #0f766e;
+        --host-dark: #0a534e;
+        --micro: #3559c7;
+        --context: #2f7d4e;
+        --contract: #9a5b00;
+        --risk: #b33b3b;
+        --code-bg: #111827;
+        --code-ink: #edf2f7;
+        --radius: 8px;
+        --content: 1180px;
+        --shadow: 0 22px 52px rgba(22, 33, 45, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.55;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(18px);
+      }
+
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: min(var(--content), calc(100% - 32px));
+        min-height: 64px;
+        margin: 0 auto;
+        gap: 16px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        gap: 12px;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid rgba(15, 118, 110, 0.26);
+        border-radius: 8px;
+        background: #edf9f7;
+        color: var(--host-dark);
+        font-weight: 850;
+      }
+
+      .brand-copy {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand-copy strong {
+        font-size: 15px;
+        line-height: 1.2;
+      }
+
+      .brand-copy span {
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .top-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .top-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 750;
+        padding: 0 12px;
+        text-decoration: none;
+      }
+
+      .top-link:hover {
+        border-color: rgba(15, 118, 110, 0.42);
+        color: var(--host-dark);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 32px;
+        width: min(var(--content), calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 70px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 88px;
+        align-self: start;
+        max-height: calc(100vh - 104px);
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .sidebar-header {
+        padding: 18px 18px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sidebar-header strong {
+        display: block;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .sidebar-header span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .nav-list {
+        display: grid;
+        gap: 2px;
+        padding: 10px;
+      }
+
+      .nav-list a {
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 14px;
+        padding: 9px 10px;
+        text-decoration: none;
+      }
+
+      .nav-list a:hover,
+      .nav-list a:focus {
+        background: #eef8f7;
+        color: var(--host-dark);
+        outline: none;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 30px;
+        align-items: stretch;
+        min-height: 560px;
+        margin-bottom: 28px;
+        padding: 42px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(125deg, rgba(15, 118, 110, 0.12), transparent 44%),
+          linear-gradient(168deg, rgba(53, 89, 199, 0.1), transparent 60%),
+          var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 34px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        border: 1px solid rgba(15, 118, 110, 0.22);
+        border-radius: 999px;
+        background: #eef8f7;
+        color: var(--host-dark);
+        font-size: 13px;
+        font-weight: 700;
+        padding: 5px 10px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.12;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin-top: 18px;
+        font-size: clamp(42px, 7vw, 78px);
+      }
+
+      h2 {
+        font-size: clamp(28px, 4vw, 42px);
+      }
+
+      h3 {
+        font-size: 18px;
+      }
+
+      .hero p {
+        max-width: 740px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 28px;
+      }
+
+      .primary-link,
+      .secondary-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 800;
+        padding: 0 14px;
+        text-decoration: none;
+      }
+
+      .primary-link {
+        border: 1px solid var(--host-dark);
+        background: var(--host);
+        color: #fff;
+      }
+
+      .secondary-link {
+        border: 1px solid var(--line-strong);
+        background: #fff;
+        color: var(--ink);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.78);
+        padding: 16px;
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 23px;
+        line-height: 1.12;
+      }
+
+      .stat span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .mockup-wrap {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+      }
+
+      .mockup {
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: #fbfcfe;
+        box-shadow: 0 24px 52px rgba(22, 33, 45, 0.12);
+      }
+
+      .mockup-chrome {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 12px;
+        border-bottom: 1px solid var(--line);
+        background: #eef2f6;
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+      }
+
+      .dot.red {
+        background: #df6a63;
+      }
+
+      .dot.amber {
+        background: #d8a238;
+      }
+
+      .dot.green {
+        background: #4aa876;
+      }
+
+      .mockup-canvas {
+        display: grid;
+        grid-template-rows: 44px 1fr 40px;
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .hotspot {
+        appearance: none;
+        margin: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease,
+          transform 160ms ease,
+          background 160ms ease;
+      }
+
+      .hotspot:hover {
+        transform: translateY(-1px);
+      }
+
+      .hotspot:focus-visible {
+        outline: 3px solid rgba(53, 89, 199, 0.3);
+        outline-offset: 2px;
+      }
+
+      .hotspot.is-active {
+        border-color: rgba(15, 118, 110, 0.58);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+      }
+
+      .host-bar {
+        display: grid;
+        grid-template-columns: 112px 1fr 68px;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #f2faf9;
+      }
+
+      .host-pill,
+      .host-line,
+      .host-chip,
+      .micro-line {
+        display: block;
+        border-radius: 999px;
+      }
+
+      .host-pill {
+        width: 88px;
+        height: 12px;
+        background: var(--host);
+      }
+
+      .host-line {
+        width: 100%;
+        height: 9px;
+        background: #b9d8d5;
+      }
+
+      .host-chip {
+        justify-self: end;
+        width: 44px;
+        height: 18px;
+        background: #fff;
+        border: 1px solid rgba(15, 118, 110, 0.22);
+      }
+
+      .mockup-body {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 12px;
+        min-height: 328px;
+      }
+
+      .shell-nav {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        border-right: 1px solid var(--line);
+        padding-right: 12px;
+      }
+
+      .nav-hotspot {
+        width: 100%;
+        height: 12px;
+        border: 0;
+        border-radius: 999px;
+        background: #d8e1ea;
+        padding: 0;
+      }
+
+      .nav-hotspot:hover,
+      .nav-hotspot.is-active {
+        background: var(--host);
+      }
+
+      .composition-area {
+        display: grid;
+        grid-template-rows: 42px 1fr 40px;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .provider-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .provider {
+        display: grid;
+        align-items: center;
+        min-height: 42px;
+        padding: 8px;
+        background: #f7fbf8;
+      }
+
+      .provider span {
+        display: block;
+        width: 72%;
+        height: 9px;
+        border-radius: 999px;
+        background: rgba(47, 125, 78, 0.42);
+      }
+
+      .micro-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .micro-card {
+        display: grid;
+        align-content: space-between;
+        min-height: 96px;
+        padding: 10px;
+        background: #fff;
+      }
+
+      .micro-card.primary {
+        grid-row: span 2;
+        border-color: rgba(53, 89, 199, 0.28);
+        background: #f7f9ff;
+      }
+
+      .micro-card:nth-child(2) {
+        border-color: rgba(15, 118, 110, 0.22);
+      }
+
+      .micro-card:nth-child(3) {
+        border-color: rgba(154, 91, 0, 0.24);
+      }
+
+      .micro-card:nth-child(4) {
+        border-color: rgba(179, 59, 59, 0.22);
+      }
+
+      .micro-chip {
+        width: 34px;
+        height: 22px;
+        border-radius: 6px;
+        background: var(--micro);
+      }
+
+      .micro-line {
+        height: 9px;
+        background: #d6ddeb;
+      }
+
+      .micro-line.short {
+        width: 56%;
+      }
+
+      .communication-rail {
+        display: grid;
+        grid-template-columns: 78px 1fr 58px;
+        align-items: center;
+        gap: 10px;
+        padding: 9px;
+        background: #fff9ed;
+      }
+
+      .rail-node {
+        height: 16px;
+        border-radius: 999px;
+        background: rgba(154, 91, 0, 0.34);
+      }
+
+      .rail-line {
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(154, 91, 0, 0.5);
+      }
+
+      .risk-strip {
+        display: grid;
+        grid-template-columns: 82px 1fr 42px;
+        align-items: center;
+        gap: 10px;
+        padding: 9px;
+        background: #fff7f6;
+      }
+
+      .risk-block {
+        height: 14px;
+        border-radius: 999px;
+        background: rgba(179, 59, 59, 0.34);
+      }
+
+      .mockup-status {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 14px;
+      }
+
+      .mockup-status strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .mockup-status span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tag {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 9px;
+      }
+
+      .section {
+        scroll-margin-top: 94px;
+        padding: 34px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .section:first-of-type {
+        border-top: 0;
+      }
+
+      .section-header {
+        display: grid;
+        gap: 8px;
+        max-width: 840px;
+        margin-bottom: 22px;
+      }
+
+      .section-kicker {
+        color: var(--host-dark);
+        font-size: 12px;
+        font-weight: 850;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .section-header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid.cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 18px;
+      }
+
+      .card.host {
+        border-top: 4px solid var(--host);
+      }
+
+      .card.micro {
+        border-top: 4px solid var(--micro);
+      }
+
+      .card.context {
+        border-top: 4px solid var(--context);
+      }
+
+      .card.contract {
+        border-top: 4px solid var(--contract);
+      }
+
+      .card.risk {
+        border-top: 4px solid var(--risk);
+      }
+
+      .card h3 {
+        margin-bottom: 8px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .flow {
+        display: grid;
+        gap: 12px;
+      }
+
+      .flow-row {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .flow-node {
+        position: relative;
+        min-height: 140px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 16px;
+      }
+
+      .flow-node::after {
+        position: absolute;
+        top: 50%;
+        right: -18px;
+        width: 22px;
+        height: 2px;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .flow-node:last-child::after {
+        display: none;
+      }
+
+      .flow-badge {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        margin-bottom: 12px;
+        place-items: center;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .flow-badge.host {
+        background: var(--host);
+      }
+
+      .flow-badge.context {
+        background: var(--context);
+      }
+
+      .flow-badge.micro {
+        background: var(--micro);
+      }
+
+      .flow-badge.contract {
+        background: var(--contract);
+      }
+
+      .flow-badge.risk {
+        background: var(--risk);
+      }
+
+      .flow-node p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .callout {
+        border-left: 4px solid var(--host);
+        border-radius: var(--radius);
+        background: #eef8f7;
+        color: var(--host-dark);
+        padding: 16px 18px;
+      }
+
+      .grid + .callout,
+      .table + .grid,
+      .table + .callout,
+      .tabs + .callout {
+        margin-top: 14px;
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .callout p {
+        margin: 0;
+        color: #285d59;
+        font-size: 14px;
+      }
+
+      .table {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+      }
+
+      .table-row {
+        display: grid;
+        grid-template-columns: 180px minmax(220px, 1fr) minmax(220px, 1fr);
+        min-width: 720px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .table-row:last-child {
+        border-bottom: 0;
+      }
+
+      .table-cell {
+        padding: 13px 16px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .table-row.header .table-cell {
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      .tabs {
+        display: grid;
+        gap: 12px;
+      }
+
+      .tab-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tab-button {
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--muted);
+        cursor: pointer;
+        font-weight: 800;
+        padding: 0 12px;
+      }
+
+      .tab-button[aria-selected="true"] {
+        border-color: rgba(15, 118, 110, 0.42);
+        background: #eef8f7;
+        color: var(--host-dark);
+      }
+
+      .tab-panel {
+        display: none;
+      }
+
+      .tab-panel.active {
+        display: block;
+      }
+
+      .code-block {
+        overflow: hidden;
+        border: 1px solid #263244;
+        border-radius: var(--radius);
+        background: var(--code-bg);
+      }
+
+      .code-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 40px;
+        border-bottom: 1px solid #263244;
+        padding: 0 12px;
+      }
+
+      .code-title {
+        color: #a7b3c4;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .copy-btn {
+        display: inline-grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border: 1px solid #3d4c63;
+        border-radius: 6px;
+        background: #172233;
+        color: #d9e2ef;
+        cursor: pointer;
+      }
+
+      .copy-btn:hover {
+        border-color: #5d718f;
+      }
+
+      .copy-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+      }
+
+      pre {
+        margin: 0;
+        overflow: auto;
+        padding: 16px;
+      }
+
+      code {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      pre code {
+        color: var(--code-ink);
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .checklist {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .checklist li {
+        display: grid;
+        grid-template-columns: 14px minmax(0, 1fr);
+        gap: 10px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .checklist li::before {
+        width: 9px;
+        height: 9px;
+        margin-top: 8px;
+        border-radius: 50%;
+        background: var(--host);
+        content: "";
+      }
+
+      .footer {
+        margin-top: 20px;
+        color: var(--muted);
+        font-size: 13px;
+        text-align: center;
+      }
+
+      @media (max-width: 1040px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+          max-height: none;
+        }
+
+        .nav-list {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .hero {
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .mockup-wrap {
+          max-width: 560px;
+        }
+
+        .flow-row,
+        .grid.cols-2,
+        .grid.cols-3 {
+          grid-template-columns: 1fr;
+        }
+
+        .flow-node::after {
+          display: none;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .topbar-inner,
+        .layout {
+          width: min(100% - 20px, var(--content));
+        }
+
+        .top-links {
+          display: none;
+        }
+
+        .hero {
+          padding: 22px;
+        }
+
+        h1 {
+          font-size: 42px;
+        }
+
+        .hero p {
+          font-size: 16px;
+        }
+
+        .stats,
+        .provider-strip,
+        .micro-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .mockup-body {
+          grid-template-columns: 1fr;
+        }
+
+        .shell-nav {
+          display: none;
+        }
+
+        .nav-list {
+          grid-template-columns: 1fr;
+        }
+
+        .host-bar,
+        .communication-rail,
+        .risk-strip {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand" aria-label="Host-Micro UI Composition Map">
+          <div class="brand-mark">HM</div>
+          <div class="brand-copy">
+            <strong>Host-Micro UI Composition Map</strong>
+            <span>Rsbuild Module Federation, shared React, legacy bridge, and AgenUI template Micro UIs</span>
+          </div>
+        </div>
+        <div class="top-links" aria-label="Page shortcuts">
+          <a class="top-link" href="#composition">Composition</a>
+          <a class="top-link" href="#module-federation">Federation</a>
+          <a class="top-link" href="#contracts">Contracts</a>
+          <a class="top-link" href="#checklist">Checklist</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" aria-label="Guide navigation">
+        <div class="sidebar-header">
+          <strong>Map</strong>
+          <span>Use the mockup to jump between architecture sections.</span>
+        </div>
+        <nav class="nav-list">
+          <a href="#overview">Overview</a>
+          <a href="#host-shell">Host Shell</a>
+          <a href="#composition">Micro Composition</a>
+          <a href="#module-federation">Rsbuild Federation</a>
+          <a href="#react-compatibility">React Compatibility</a>
+          <a href="#template-micros">Template Micro UIs</a>
+          <a href="#shared-context">Shared Context</a>
+          <a href="#contracts">Contracts</a>
+          <a href="#navigation">Navigation</a>
+          <a href="#communication">Communication</a>
+          <a href="#ownership">Ownership</a>
+          <a href="#failure">Failure Handling</a>
+          <a href="#checklist">Checklist</a>
+        </nav>
+      </aside>
+
+      <main>
+        <section class="hero" id="overview">
+          <div class="hero-copy">
+            <div>
+              <span class="eyebrow">Interactive product mockup</span>
+              <h1>Host UI and Micro UI Relationship</h1>
+              <p>
+                A clickable architecture preview for explaining how the Host UI provides the
+                shell, navigation, shared providers, session context, and runtime contracts.
+                The Host loads Micro UIs through Rsbuild Module Federation; modern Micro UIs
+                share the Host React runtime and AgenUI template stack, while legacy React
+                16.2 Micro UIs integrate through bridge-react.
+              </p>
+              <div class="hero-actions">
+                <a class="primary-link" href="#composition">Explore composition</a>
+                <a class="secondary-link" href="#contracts">View contracts</a>
+              </div>
+            </div>
+
+            <div class="stats" aria-label="Relationship highlights">
+              <div class="stat">
+                <strong>Host</strong>
+                <span>Owns shell, routing, providers, and guardrails</span>
+              </div>
+              <div class="stat">
+                <strong>Federation</strong>
+                <span>Rsbuild remotes provide runtime Micro UI loading</span>
+              </div>
+              <div class="stat">
+                <strong>React</strong>
+                <span>Shared Host version for modern UIs, bridge for React 16.2</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mockup-wrap" aria-label="Clickable Host and Micro UI preview">
+            <div class="mockup">
+              <div class="mockup-chrome">
+                <span class="dot red"></span>
+                <span class="dot amber"></span>
+                <span class="dot green"></span>
+              </div>
+              <div class="mockup-canvas">
+                <button
+                  class="host-bar hotspot is-active"
+                  type="button"
+                  data-target="host-shell"
+                  data-title="Host Shell"
+                  data-summary="Layout, top navigation, providers, route guards, and page-level orchestration live here."
+                  title="Host Shell"
+                  aria-label="Open Host Shell section"
+                >
+                  <span class="host-pill"></span>
+                  <span class="host-line"></span>
+                  <span class="host-chip"></span>
+                </button>
+
+                <div class="mockup-body">
+                  <div class="shell-nav" aria-label="Host navigation hotspots">
+                    <button
+                      class="nav-hotspot hotspot"
+                      type="button"
+                      data-target="module-federation"
+                      data-title="Rsbuild Module Federation"
+                      data-summary="The Host loads Micro UI remotes through Rsbuild Module Federation and validates their manifest before mount."
+                      title="Rsbuild Module Federation"
+                      aria-label="Open Rsbuild Module Federation section"
+                    ></button>
+                    <button
+                      class="nav-hotspot hotspot"
+                      type="button"
+                      data-target="navigation"
+                      data-title="Navigation"
+                      data-summary="The Host controls page navigation, route ownership, deep links, and fallback behavior."
+                      title="Navigation"
+                      aria-label="Open Navigation section"
+                    ></button>
+                    <button
+                      class="nav-hotspot hotspot"
+                      type="button"
+                      data-target="react-compatibility"
+                      data-title="React Compatibility"
+                      data-summary="Modern Micro UIs share the Host React version; legacy React 16.2 UIs are isolated through bridge-react."
+                      title="React Compatibility"
+                      aria-label="Open React Compatibility section"
+                    ></button>
+                    <button
+                      class="nav-hotspot hotspot"
+                      type="button"
+                      data-target="contracts"
+                      data-title="Contracts"
+                      data-summary="Micro UIs integrate through explicit manifests, props, events, and versioned agreements."
+                      title="Contracts"
+                      aria-label="Open Contracts section"
+                    ></button>
+                    <button
+                      class="nav-hotspot hotspot"
+                      type="button"
+                      data-target="template-micros"
+                      data-title="Template Micro UIs"
+                      data-summary="Most modern Micro UIs use the AgenUI template with Zustand, RxJS, i18n, Controller container, and session helpers."
+                      title="Template Micro UIs"
+                      aria-label="Open Template Micro UIs section"
+                    ></button>
+                  </div>
+
+                  <div class="composition-area">
+                    <div class="provider-strip">
+                      <button
+                        class="provider hotspot"
+                        type="button"
+                        data-target="shared-context"
+                        data-title="Session Provider"
+                        data-summary="Session values are shared through a controlled provider instead of direct coupling."
+                        title="Session Provider"
+                        aria-label="Open Shared Context section"
+                      >
+                        <span></span>
+                      </button>
+                      <button
+                        class="provider hotspot"
+                        type="button"
+                        data-target="shared-context"
+                        data-title="Locale Provider"
+                        data-summary="Locale wording and formatting stay consistent across Host and Micro UI surfaces."
+                        title="Locale Provider"
+                        aria-label="Open Shared Context section"
+                      >
+                        <span></span>
+                      </button>
+                      <button
+                        class="provider hotspot"
+                        type="button"
+                        data-target="template-micros"
+                        data-title="AgenUI Template Provider"
+                        data-summary="Modern Micro UIs use the same template foundation as the Host-facing product UI."
+                        title="AgenUI Template Provider"
+                        aria-label="Open Template Micro UIs section"
+                      >
+                        <span></span>
+                      </button>
+                    </div>
+
+                    <div class="micro-grid">
+                      <button
+                        class="micro-card primary hotspot"
+                        type="button"
+                        data-target="template-micros"
+                        data-title="Modern Template Micro UI"
+                        data-summary="Modern Micro UIs share the Host React version and use AgenUI, Zustand, RxJS, i18n, Controller, and session helpers."
+                        title="Modern Template Micro UI"
+                        aria-label="Open Template Micro UIs section"
+                      >
+                        <span class="micro-chip"></span>
+                        <span class="micro-line"></span>
+                        <span class="micro-line short"></span>
+                      </button>
+                      <button
+                        class="micro-card hotspot"
+                        type="button"
+                        data-target="react-compatibility"
+                        data-title="Legacy React 16.2 Micro UI"
+                        data-summary="Older React 16.2 Micro UIs use bridge-react so they can coexist with the Host without sharing incompatible React internals."
+                        title="Legacy React 16.2 Micro UI"
+                        aria-label="Open React Compatibility section"
+                      >
+                        <span class="micro-chip"></span>
+                        <span class="micro-line"></span>
+                        <span class="micro-line short"></span>
+                      </button>
+                      <button
+                        class="micro-card hotspot"
+                        type="button"
+                        data-target="module-federation"
+                        data-title="Federated Remote"
+                        data-summary="Remote entry and exposed module metadata tell the Host how to load and mount the Micro UI."
+                        title="Federated Remote"
+                        aria-label="Open Rsbuild Module Federation section"
+                      >
+                        <span class="micro-chip"></span>
+                        <span class="micro-line"></span>
+                        <span class="micro-line short"></span>
+                      </button>
+                      <button
+                        class="micro-card hotspot"
+                        type="button"
+                        data-target="communication"
+                        data-title="Events and API Boundary"
+                        data-summary="Cross-boundary communication happens through events, callbacks, and API clients."
+                        title="Events and API Boundary"
+                        aria-label="Open Communication section"
+                      >
+                        <span class="micro-chip"></span>
+                        <span class="micro-line"></span>
+                        <span class="micro-line short"></span>
+                      </button>
+                    </div>
+
+                    <button
+                      class="communication-rail hotspot"
+                      type="button"
+                      data-target="communication"
+                      data-title="Communication Rail"
+                      data-summary="Event channels, callbacks, and API clients keep Host and Micro UI collaboration explicit."
+                      title="Communication Rail"
+                      aria-label="Open Communication section"
+                    >
+                      <span class="rail-node"></span>
+                      <span class="rail-line"></span>
+                      <span class="rail-node"></span>
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  class="risk-strip hotspot"
+                  type="button"
+                  data-target="failure"
+                  data-title="Fallback and Error Boundary"
+                  data-summary="The Host catches loading, unavailable Micro UI, runtime error, and permission-denied states."
+                  title="Fallback and Error Boundary"
+                  aria-label="Open Failure Handling section"
+                >
+                  <span class="risk-block"></span>
+                  <span class="risk-block"></span>
+                  <span class="risk-block"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="mockup-status" aria-live="polite">
+              <strong class="mockup-status-title">Host Shell</strong>
+              <span class="mockup-status-copy">Layout, top navigation, providers, route guards, and page-level orchestration live here.</span>
+            </div>
+
+            <div class="tags">
+              <span class="tag">Host UI</span>
+              <span class="tag">Micro UI</span>
+              <span class="tag">Rsbuild Module Federation</span>
+              <span class="tag">bridge-react</span>
+              <span class="tag">React 16.2</span>
+              <span class="tag">AgenUI Template</span>
+              <span class="tag">Shell</span>
+              <span class="tag">Shared Context</span>
+              <span class="tag">Runtime Contract</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="host-shell">
+          <div class="section-header">
+            <span class="section-kicker">Host Shell</span>
+            <h2>The Host UI owns the product frame.</h2>
+            <p>
+              The Host is the stable application container. It decides what page is active,
+              loads Micro UIs through Rsbuild Module Federation, supplies shared providers,
+              enforces route guards, and chooses whether a Micro UI mounts through shared
+              React or the bridge-react legacy path.
+            </p>
+          </div>
+
+          <div class="grid cols-3">
+            <article class="card host">
+              <h3>Layout and Navigation</h3>
+              <p>Header, sidebar, route registry, breadcrumbs, page titles, and product-level transitions.</p>
+            </article>
+            <article class="card context">
+              <h3>Shared Providers</h3>
+              <p>Theme, locale, session, user profile, permissions, React compatibility, and application configuration.</p>
+            </article>
+            <article class="card risk">
+              <h3>Guardrails</h3>
+              <p>Authentication checks, permission gates, unavailable remote fallbacks, version mismatch handling, and error boundaries.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="composition">
+          <div class="section-header">
+            <span class="section-kicker">Micro Composition</span>
+            <h2>Micro UIs render inside controlled mount areas.</h2>
+            <p>
+              The Host decides where a Micro UI can appear. The Micro UI owns the feature
+              workflow inside that area, while the Host keeps global behavior consistent.
+              Runtime loading is handled through Rsbuild Module Federation, then normalized
+              through the Host mount contract.
+            </p>
+          </div>
+
+          <div class="flow">
+            <div class="flow-row">
+              <article class="flow-node">
+                <div class="flow-badge host">H</div>
+                <h3>Host Route</h3>
+                <p>Matches the URL and selects the Micro UI to render.</p>
+              </article>
+              <article class="flow-node">
+                <div class="flow-badge context">CTX</div>
+                <h3>Rsbuild Remote</h3>
+                <p>Loads remote entry, exposed module, and shared dependency metadata.</p>
+              </article>
+              <article class="flow-node">
+                <div class="flow-badge contract">API</div>
+                <h3>Contract</h3>
+                <p>Chooses direct shared React mount or bridge-react legacy mount.</p>
+              </article>
+              <article class="flow-node">
+                <div class="flow-badge micro">M</div>
+                <h3>Micro UI</h3>
+                <p>Modern UIs use the AgenUI template; legacy UIs stay isolated.</p>
+              </article>
+              <article class="flow-node">
+                <div class="flow-badge risk">FB</div>
+                <h3>Fallback</h3>
+                <p>Shows loader, retry, or error state if the Micro UI cannot render.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="module-federation">
+          <div class="section-header">
+            <span class="section-kicker">Rsbuild Module Federation</span>
+            <h2>The Host loads Micro UIs as federated remotes.</h2>
+            <p>
+              Rsbuild Module Federation gives the Host a runtime loading model: each Micro UI
+              publishes a remote entry and exposed mount module. The Host resolves the remote,
+              checks compatibility metadata, then mounts it inside the correct page container.
+            </p>
+          </div>
+
+          <div class="grid cols-2">
+            <article class="card host">
+              <h3>Host Loader Responsibilities</h3>
+              <ul class="checklist">
+                <li>Resolve remote entry URL by route, environment, tenant, or feature flag.</li>
+                <li>Load the exposed module and validate required Host and React compatibility.</li>
+                <li>Provide shared dependencies for modern Micro UIs where versions match.</li>
+                <li>Choose bridge-react for legacy React 16.2 Micro UIs before mounting.</li>
+              </ul>
+            </article>
+            <article class="card micro">
+              <h3>Micro UI Remote Responsibilities</h3>
+              <ul class="checklist">
+                <li>Publish a stable remote entry and a small exposed mount module.</li>
+                <li>Declare framework mode: shared React or legacy bridge-react.</li>
+                <li>Keep internal feature state private and expose only contract-level events.</li>
+                <li>Build modern Micro UIs with the AgenUI template when using the Host React version.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="tabs" data-tabs>
+            <div class="tab-list" role="tablist" aria-label="Federation examples">
+              <button class="tab-button" type="button" role="tab" aria-selected="true" aria-controls="tab-host-rsbuild" id="tab-host-rsbuild-button">Host</button>
+              <button class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-remote-rsbuild" id="tab-remote-rsbuild-button">Remote</button>
+              <button class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-loader" id="tab-loader-button">Loader</button>
+            </div>
+
+            <div class="tab-panel active" role="tabpanel" id="tab-host-rsbuild" aria-labelledby="tab-host-rsbuild-button">
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="code-title">host rsbuild module federation shape</span>
+                  <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <pre><code>moduleFederation({
+  name: "host_ui",
+  remotes: {
+    customerProfile: "customerProfile@/remotes/customer/remoteEntry.js",
+    legacyOrders: "legacyOrders@/remotes/orders/remoteEntry.js"
+  },
+  shared: {
+    react: { singleton: true, requiredVersion: hostReactVersion },
+    "react-dom": { singleton: true, requiredVersion: hostReactVersion }
+  }
+});</code></pre>
+              </div>
+            </div>
+
+            <div class="tab-panel" role="tabpanel" id="tab-remote-rsbuild" aria-labelledby="tab-remote-rsbuild-button">
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="code-title">micro ui remote shape</span>
+                  <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <pre><code>moduleFederation({
+  name: "customerProfile",
+  filename: "remoteEntry.js",
+  exposes: {
+    "./mount": "./src/micro/mount.ts"
+  },
+  shared: {
+    react: { singleton: true },
+    "react-dom": { singleton: true }
+  }
+});</code></pre>
+              </div>
+            </div>
+
+            <div class="tab-panel" role="tabpanel" id="tab-loader" aria-labelledby="tab-loader-button">
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="code-title">host loader decision</span>
+                  <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <pre><code>async function mountMicroUi(definition, container, hostContext) {
+  const remote = await loadFederatedRemote(definition);
+
+  if (definition.reactMode === "legacy-react-16.2") {
+    return mountWithBridgeReact(remote, container, hostContext);
+  }
+
+  return remote.mount(container, hostContext);
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="react-compatibility">
+          <div class="section-header">
+            <span class="section-kicker">React Compatibility</span>
+            <h2>Most Micro UIs share the Host React version; legacy React 16.2 uses bridge-react.</h2>
+            <p>
+              Modern Micro UIs are easiest to operate because they use the same React JS
+              version as the Host UI. Older React 16.2 Micro UIs should not share React
+              internals with the Host; they need a bridge layer that mounts them as isolated
+              islands with plain-data contracts.
+            </p>
+          </div>
+
+          <div class="grid cols-2">
+            <article class="card micro">
+              <h3>Modern Shared React Path</h3>
+              <ul class="checklist">
+                <li>Use Host-compatible React and ReactDOM versions through shared federation dependencies.</li>
+                <li>Consume Host theme, locale, session, permissions, and navigation through typed context props.</li>
+                <li>Use the AgenUI template stack for consistent UI, store, API, wording, and controller patterns.</li>
+                <li>Mount directly through the remote module's standard mount/unmount contract.</li>
+              </ul>
+            </article>
+            <article class="card risk">
+              <h3>Legacy React 16.2 Bridge Path</h3>
+              <ul class="checklist">
+                <li>Mount through bridge-react so React 16.2 can coexist with the Host React runtime.</li>
+                <li>Pass only serializable props, callbacks, event handlers, and normalized context data.</li>
+                <li>Avoid sharing Host React context, hooks, component instances, or renderer internals.</li>
+                <li>Wrap the legacy island with Host-level loading, error boundary, cleanup, and retry behavior.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="table" role="table" aria-label="React compatibility matrix">
+            <div class="table-row header" role="row">
+              <div class="table-cell" role="columnheader">Micro UI Type</div>
+              <div class="table-cell" role="columnheader">Integration Path</div>
+              <div class="table-cell" role="columnheader">Rules</div>
+            </div>
+            <div class="table-row" role="row">
+              <div class="table-cell" role="cell">Modern React</div>
+              <div class="table-cell" role="cell">Rsbuild Module Federation with shared React singleton.</div>
+              <div class="table-cell" role="cell">Use AgenUI template, typed Host context, and direct mount/unmount.</div>
+            </div>
+            <div class="table-row" role="row">
+              <div class="table-cell" role="cell">Legacy React 16.2</div>
+              <div class="table-cell" role="cell">Rsbuild remote loaded by Host, rendered through bridge-react.</div>
+              <div class="table-cell" role="cell">No shared React context or hooks; communicate through props, events, and callbacks.</div>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-title">modern shared React mount</span>
+                <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+              <pre><code>export function mount(container, hostContext) {
+  return mountWithHostReact(container, {
+    App: TemplateMicroUiApp,
+    providers: {
+      agenUiTheme: hostContext.theme,
+      session: hostContext.session,
+      locale: hostContext.locale,
+      navigator: hostContext.navigate
+    }
+  });
+}</code></pre>
+            </div>
+
+            <div class="code-block">
+              <div class="code-head">
+                <span class="code-title">legacy React 16.2 bridge-react mount</span>
+                <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+              <pre><code>export function mountLegacy(container, hostContext) {
+  const bridge = createBridgeReact({
+    reactVersion: "16.2",
+    container
+  });
+
+  return bridge.mount(LegacyMicroUiApp, {
+    session: toPlainSession(hostContext.session),
+    locale: hostContext.locale.current,
+    onNavigate: hostContext.navigate.to,
+    onEvent: hostContext.events.emit
+  });
+}</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="template-micros">
+          <div class="section-header">
+            <span class="section-kicker">Template Micro UIs</span>
+            <h2>Modern Micro UIs use the AgenUI React template.</h2>
+            <p>
+              When a Micro UI uses the same React version as the Host, it follows the template
+              foundation you described earlier: AgenUI for company-standard components,
+              Zustand as the view model store, i18n for wording, RxJS for API clients, a
+              Controller container for page navigation, and session storage helpers for
+              shared project context.
+            </p>
+          </div>
+
+          <div class="grid cols-3">
+            <article class="card host">
+              <h3>AgenUI Components</h3>
+              <p>Micro UI screens match the company design system without re-creating visual rules.</p>
+            </article>
+            <article class="card context">
+              <h3>Zustand View Model</h3>
+              <p>Feature state remains inside the Micro UI while Host context is passed through the contract.</p>
+            </article>
+            <article class="card contract">
+              <h3>RxJS API Client</h3>
+              <p>Feature APIs stay observable-based with consistent mapping, retry, and error normalization.</p>
+            </article>
+            <article class="card micro">
+              <h3>i18n Wording</h3>
+              <p>Micro UI wording is namespaced but still respects Host locale and formatting context.</p>
+            </article>
+            <article class="card host">
+              <h3>Controller Container</h3>
+              <p>Page navigation and feature orchestration are coordinated with the Host navigator.</p>
+            </article>
+            <article class="card context">
+              <h3>Session Helpers</h3>
+              <p>Session data is read through the Host contract or approved shared session helpers.</p>
+            </article>
+          </div>
+
+          <div class="callout">
+            <strong>Recommended default</strong>
+            <p>New Micro UIs should use the modern template path unless there is a clear legacy constraint. React 16.2 Micro UIs should be treated as compatibility islands, not as the normal pattern.</p>
+          </div>
+        </section>
+
+        <section class="section" id="shared-context">
+          <div class="section-header">
+            <span class="section-kicker">Shared Context</span>
+            <h2>Shared services come from the Host, not from hidden coupling.</h2>
+            <p>
+              Micro UIs should consume shared data through explicit providers, hooks, or
+              contract props. This keeps each feature independent while preserving one product
+              experience.
+            </p>
+          </div>
+
+          <div class="grid cols-2">
+            <article class="card context">
+              <h3>Context to Share</h3>
+              <ul class="checklist">
+                <li>Session user, active tenant, workspace, and access token reference.</li>
+                <li>Locale, date formatting, timezone, currency, and wording namespace.</li>
+                <li>Theme tokens, design system version, and company UI configuration.</li>
+                <li>Permission rules, feature flags, app-level configuration, and React compatibility mode.</li>
+              </ul>
+            </article>
+            <article class="card contract">
+              <h3>Context to Avoid Sharing</h3>
+              <ul class="checklist">
+                <li>Micro UI internal store state that should remain feature-owned.</li>
+                <li>Private implementation details such as component refs or internal routes.</li>
+                <li>Mutable global objects without versioning or cleanup rules.</li>
+                <li>Backend response shapes before they are normalized by an API boundary.</li>
+                <li>Host React context or hooks inside React 16.2 bridge-react islands.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="contracts">
+          <div class="section-header">
+            <span class="section-kicker">Runtime Contracts</span>
+            <h2>The contract is the integration product.</h2>
+            <p>
+              A clean Host-Micro relationship depends on a small and stable contract. Treat it
+              like a product API: typed, versioned, documented, and reviewed.
+            </p>
+          </div>
+
+          <div class="tabs" data-tabs>
+            <div class="tab-list" role="tablist" aria-label="Contract examples">
+              <button class="tab-button" type="button" role="tab" aria-selected="true" aria-controls="tab-manifest" id="tab-manifest-button">Manifest</button>
+              <button class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-mount" id="tab-mount-button">Mount</button>
+              <button class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-events" id="tab-events-button">Events</button>
+              <button class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-context" id="tab-context-button">Context</button>
+            </div>
+
+            <div class="tab-panel active" role="tabpanel" id="tab-manifest" aria-labelledby="tab-manifest-button">
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="code-title">micro-ui.manifest.json</span>
+                  <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <pre><code>{
+  "name": "customer-profile-ui",
+  "version": "1.4.0",
+  "routeBase": "/customers",
+  "remoteEntry": "/micro/customer-profile/remoteEntry.js",
+  "exposedModule": "./CustomerProfileApp",
+  "integrationMode": "rsbuild-module-federation",
+  "reactMode": "shared-host-react",
+  "template": "agenui-react-template",
+  "requiredHostVersion": "^3.2.0",
+  "requiredReactVersion": "host-compatible"
+}</code></pre>
+              </div>
+            </div>
+
+            <div class="tab-panel" role="tabpanel" id="tab-mount" aria-labelledby="tab-mount-button">
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="code-title">Host mount contract</span>
+                  <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <pre><code>type MicroMountProps = {
+  routeBase: string;
+  integrationMode: "shared-host-react" | "legacy-react-16.2";
+  session: SessionContext;
+  locale: LocaleContext;
+  theme: ThemeContext;
+  permissions: PermissionSet;
+  events: HostEventBus;
+  navigate: HostNavigator;
+  moduleFederation: FederationMetadata;
+};</code></pre>
+              </div>
+            </div>
+
+            <div class="tab-panel" role="tabpanel" id="tab-events" aria-labelledby="tab-events-button">
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="code-title">Event boundary</span>
+                  <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <pre><code>events.emit("customer.updated", {
+  customerId,
+  source: "customer-profile-ui",
+});
+
+events.on("session.changed", (session) => {
+  refreshFeatureState(session);
+});</code></pre>
+              </div>
+            </div>
+
+            <div class="tab-panel" role="tabpanel" id="tab-context" aria-labelledby="tab-context-button">
+              <div class="code-block">
+                <div class="code-head">
+                  <span class="code-title">Shared context shape</span>
+                  <button class="copy-btn" type="button" title="Copy code" aria-label="Copy code">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                  </button>
+                </div>
+                <pre><code>type SessionContext = {
+  userId: string;
+  displayName: string;
+  activeTenantId: string;
+  permissions: string[];
+  featureFlags: Record&lt;string, boolean&gt;;
+};</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="navigation">
+          <div class="section-header">
+            <span class="section-kicker">Navigation</span>
+            <h2>The Host owns the route map; Micro UIs own feature intent.</h2>
+            <p>
+              Let Micro UIs request navigation through a Host navigator. That keeps browser
+              history, route guards, analytics, deep links, and federated remote loading
+              centralized.
+            </p>
+          </div>
+
+          <div class="grid cols-2">
+            <article class="card host">
+              <h3>Host Responsibilities</h3>
+              <ul class="checklist">
+                <li>Define top-level routes and Micro UI mount points.</li>
+                <li>Validate permissions before loading a Micro UI.</li>
+                <li>Own deep-link parsing, redirects, and not-found routes.</li>
+                <li>Resolve the Rsbuild remote and compatibility mode for each route.</li>
+              </ul>
+            </article>
+            <article class="card micro">
+              <h3>Micro UI Responsibilities</h3>
+              <ul class="checklist">
+                <li>Request navigation through the provided Host navigator.</li>
+                <li>Keep internal tabs and local feature state inside the mount area.</li>
+                <li>Expose route needs as contract requirements, not hidden assumptions.</li>
+                <li>Use template Controller containers for modern Micro UI page orchestration.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="communication">
+          <div class="section-header">
+            <span class="section-kicker">Communication</span>
+            <h2>Use explicit boundaries for data and events.</h2>
+            <p>
+              The Host and Micro UIs can collaborate through event channels, callbacks,
+              shared context, and API clients. The important rule is that communication is
+              named and versioned, especially across bridge-react legacy islands.
+            </p>
+          </div>
+
+          <div class="table" role="table" aria-label="Communication responsibilities">
+            <div class="table-row header" role="row">
+              <div class="table-cell" role="columnheader">Channel</div>
+              <div class="table-cell" role="columnheader">Best For</div>
+              <div class="table-cell" role="columnheader">Avoid</div>
+            </div>
+            <div class="table-row" role="row">
+              <div class="table-cell" role="cell">Contract props</div>
+              <div class="table-cell" role="cell">Initial context, route params, permissions, and feature flags.</div>
+              <div class="table-cell" role="cell">Large mutable objects or private Host implementation details.</div>
+            </div>
+            <div class="table-row" role="row">
+              <div class="table-cell" role="cell">Event bus</div>
+              <div class="table-cell" role="cell">Cross-feature notifications and app-level lifecycle changes.</div>
+              <div class="table-cell" role="cell">Request-response flows that should be API calls.</div>
+            </div>
+            <div class="table-row" role="row">
+              <div class="table-cell" role="cell">API client</div>
+              <div class="table-cell" role="cell">Backend data, caching, normalization, retries, and error mapping.</div>
+              <div class="table-cell" role="cell">Direct access to another Micro UI's internal store.</div>
+            </div>
+            <div class="table-row" role="row">
+              <div class="table-cell" role="cell">bridge-react</div>
+              <div class="table-cell" role="cell">Legacy React 16.2 UI mounting with plain props and lifecycle callbacks.</div>
+              <div class="table-cell" role="cell">Sharing Host React hooks, context providers, or component instances.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="ownership">
+          <div class="section-header">
+            <span class="section-kicker">Ownership</span>
+            <h2>Clear ownership lets teams move independently.</h2>
+            <p>
+              The architecture should make it obvious who owns each surface, contract, and
+              release decision.
+            </p>
+          </div>
+
+          <div class="grid cols-3">
+            <article class="card host">
+              <h3>Platform Team</h3>
+              <p>Owns Host Shell, Rsbuild federation runtime, route registry, providers, bridge-react policy, and shared design system setup.</p>
+            </article>
+            <article class="card micro">
+              <h3>Feature Team</h3>
+              <p>Owns Micro UI feature screens, local state, feature API usage, template adoption, tests, and release notes.</p>
+            </article>
+            <article class="card contract">
+              <h3>Shared Review</h3>
+              <p>Versioned contracts, React compatibility mode, remote manifest changes, observability, and rollout strategy are reviewed together.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="failure">
+          <div class="section-header">
+            <span class="section-kicker">Failure Handling</span>
+            <h2>The Host protects the product when a Micro UI fails.</h2>
+            <p>
+              Runtime composition needs graceful states. A missing remote, failed permission
+              check, slow load, React version mismatch, bridge-react mount failure, or runtime
+              error should never break the full Host UI.
+            </p>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="callout">
+              <strong>Host fallback states</strong>
+              <p>Loading, remote unavailable, permission denied, React version mismatch, bridge mount failure, and retryable runtime error states should be designed in the Host Shell.</p>
+            </div>
+            <div class="callout">
+              <strong>Micro UI recovery</strong>
+              <p>Micro UIs should expose cleanup behavior, cancel in-flight work on unmount, and report user-safe error messages through the contract. Legacy React 16.2 islands should also clean up bridge-react mounts.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="checklist">
+          <div class="section-header">
+            <span class="section-kicker">Review Checklist</span>
+            <h2>Use this before adding a new Micro UI.</h2>
+            <p>
+              A Micro UI is ready to integrate when the Host can load it, guard it, pass
+              context, choose the correct React integration path, communicate with it, and
+              recover from failure.
+            </p>
+          </div>
+
+          <div class="grid cols-2">
+            <article class="card host">
+              <h3>Host Integration</h3>
+              <ul class="checklist">
+                <li>Route, mount slot, fallback UI, permissions, and analytics are defined.</li>
+                <li>Shared session, locale, theme, and feature flags are passed explicitly.</li>
+                <li>Rsbuild remote loading, React compatibility checks, unavailable remote, and runtime error states are tested.</li>
+              </ul>
+            </article>
+            <article class="card micro">
+              <h3>Micro UI Readiness</h3>
+              <ul class="checklist">
+                <li>Manifest, exposed module, mount props, and events are documented.</li>
+                <li>Internal state is isolated from Host and other Micro UIs.</li>
+                <li>Modern Micro UIs use the AgenUI template when sharing Host React.</li>
+                <li>React 16.2 Micro UIs declare bridge-react mode, cleanup, and release ownership clearly.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <p class="footer">
+          Host-Micro UI Composition Map. Static clickable architecture preview for internal product and engineering presentations.
+        </p>
+      </main>
+    </div>
+
+    <script>
+      const copyButtons = document.querySelectorAll(".copy-btn");
+
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const block = button.closest(".code-block");
+          const code = block ? block.querySelector("code") : null;
+          if (!code) return;
+
+          try {
+            await navigator.clipboard.writeText(code.innerText);
+            button.setAttribute("title", "Copied");
+            button.setAttribute("aria-label", "Copied");
+            setTimeout(() => {
+              button.setAttribute("title", "Copy code");
+              button.setAttribute("aria-label", "Copy code");
+            }, 1200);
+          } catch (error) {
+            button.setAttribute("title", "Copy unavailable");
+          }
+        });
+      });
+
+      const hotspots = document.querySelectorAll(".hotspot");
+      const statusTitle = document.querySelector(".mockup-status-title");
+      const statusCopy = document.querySelector(".mockup-status-copy");
+
+      const setActiveTarget = (targetId, title, summary) => {
+        hotspots.forEach((hotspot) => {
+          const isActive = hotspot.dataset.target === targetId;
+          hotspot.classList.toggle("is-active", isActive);
+
+          if (isActive) {
+            hotspot.setAttribute("aria-current", "true");
+          } else {
+            hotspot.removeAttribute("aria-current");
+          }
+        });
+
+        if (statusTitle && title) statusTitle.textContent = title;
+        if (statusCopy && summary) statusCopy.textContent = summary;
+      };
+
+      hotspots.forEach((hotspot) => {
+        hotspot.addEventListener("click", () => {
+          const targetId = hotspot.dataset.target;
+          const target = targetId ? document.getElementById(targetId) : null;
+          if (!target) return;
+
+          setActiveTarget(targetId, hotspot.dataset.title, hotspot.dataset.summary);
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      const targetIds = [...new Set([...hotspots].map((hotspot) => hotspot.dataset.target))].filter(Boolean);
+      const sections = targetIds.map((targetId) => document.getElementById(targetId)).filter(Boolean);
+
+      if ("IntersectionObserver" in window) {
+        const sectionObserver = new IntersectionObserver(
+          (entries) => {
+            const activeEntry = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+            if (!activeEntry) return;
+
+            const matchingHotspot = [...hotspots].find(
+              (hotspot) => hotspot.dataset.target === activeEntry.target.id
+            );
+
+            setActiveTarget(
+              activeEntry.target.id,
+              matchingHotspot?.dataset.title,
+              matchingHotspot?.dataset.summary
+            );
+          },
+          {
+            rootMargin: "-30% 0px -52% 0px",
+            threshold: [0.08, 0.24, 0.48],
+          }
+        );
+
+        sections.forEach((section) => sectionObserver.observe(section));
+      }
+
+      setActiveTarget(
+        "host-shell",
+        "Host Shell",
+        "Layout, top navigation, providers, route guards, and page-level orchestration live here."
+      );
+
+      const tabGroups = document.querySelectorAll("[data-tabs]");
+
+      tabGroups.forEach((group) => {
+        const buttons = group.querySelectorAll(".tab-button");
+        const panels = group.querySelectorAll(".tab-panel");
+
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => {
+            buttons.forEach((item) => item.setAttribute("aria-selected", "false"));
+            panels.forEach((panel) => panel.classList.remove("active"));
+
+            button.setAttribute("aria-selected", "true");
+            const panel = group.querySelector(`#${button.getAttribute("aria-controls")}`);
+            if (panel) panel.classList.add("active");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
