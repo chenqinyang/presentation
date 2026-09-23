@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A standalone visual guide to a reusable Journey Controller permission API: usePermissions, can, getPermission, staff grants, and per-action status handling.">
+<title>One hook. Two ways to ask. — Journey permissions</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c293c'/%3E%3Cpath d='M8 16h6m0 0 7-7m-7 7 7 7' stroke='%2371e1c6' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:light;--ink:#102d40;--muted:#526878;--paper:#f3f6f8;--line:#d0dee7;--teal:#087467;--teal-bg:#e5f5ef;--mint:#71e1c6;--blue:#2354b3;--blue-bg:#edf2ff;--red:#a33145;--red-bg:#fceef1;--amber:#885309;--amber-bg:#fff2d7;--navy:#0c293c;--code:#d4e6f0}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,select{font:inherit}button,select,summary{cursor:pointer}button{touch-action:manipulation}button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:4px}a{color:var(--blue);text-underline-offset:3px}h1,h2,h3,p{margin:0}h1,h2,h3{line-height:1.17}h1{font-size:clamp(2.7rem,5.8vw,4.8rem);letter-spacing:-.055em;font-weight:660}h2{font-size:clamp(1.8rem,3.4vw,2.65rem);letter-spacing:-.04em;font-weight:650}h3{font-size:1.15rem;font-weight:650;letter-spacing:-.015em}code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}code{font-size:.875em;overflow-wrap:anywhere}pre{margin:0;font-size:.8125rem;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}[hidden]{display:none!important}button:disabled{cursor:not-allowed;opacity:.48}.skip{position:absolute;top:-100px;left:18px;z-index:50;background:white;padding:10px}.skip:focus{top:10px}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.98);border-bottom:1px solid var(--line)}.topbar-inner{max-width:1280px;margin:auto;padding:15px 32px;display:flex;gap:24px;align-items:center}.brand{color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:10px;font-weight:700;font-size:.9375rem}.mark{width:30px;height:30px;flex-shrink:0}nav{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}nav a{font-size:.8125rem;text-decoration:none;color:var(--muted);border-bottom:2px solid transparent;padding:5px 0}nav a:hover{border-color:var(--teal);color:var(--ink)}.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 15px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink);font-weight:650;font-size:.875rem;text-decoration:none}.btn:hover:not(:disabled){background:#eaf0f4}.btn.primary{background:var(--ink);border-color:var(--ink);color:white}.btn.primary:hover:not(:disabled){background:#21485f}.btn.small{min-height:38px;padding:7px 12px;font-size:.8125rem}.btn[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-bg);color:var(--teal)}
+main{max-width:1280px;margin:auto;padding:0 32px}.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:50px;align-items:center;padding:54px 0 28px}.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--teal);margin-bottom:18px}.hero h1 span{color:var(--teal)}.hero-copy{font-size:1.0625rem;color:var(--muted);max-width:580px;margin-top:20px}.api-summary{background:var(--navy);border-radius:16px;padding:25px;color:var(--code);min-width:0}.api-summary .label{color:#b3ccd8}.api-summary .line{display:flex;align-items:center;gap:14px;margin-top:17px;padding-top:17px;border-top:1px solid #385567;flex-wrap:wrap}.api-summary code{font-size:.875rem}.api-summary .result{color:var(--mint);font-family:ui-monospace,monospace;font-size:.875rem}.api-summary p{font-size:.8125rem;color:#b9cfdc;margin-top:18px}.label{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.085em;font-weight:700;color:var(--muted)}.badge{display:inline-flex;padding:4px 8px;border-radius:5px;font-size:.75rem;font-weight:650;line-height:1.4;background:var(--blue-bg);color:var(--blue)}.badge.teal{color:var(--teal);background:var(--teal-bg)}.badge.dark{color:#c1f2e6;background:#20485a}.pill{display:inline-block;font-size:.75rem;font-weight:700;border-radius:5px;padding:4px 8px;white-space:nowrap}.pill.allowed{color:var(--teal);background:var(--teal-bg)}.pill.denied{color:var(--red);background:var(--red-bg)}.pill.loading{color:var(--amber);background:var(--amber-bg)}.pill.error{color:var(--blue);background:var(--blue-bg)}
+section{padding:34px 0 26px}.section-heading{display:flex;gap:20px;align-items:start;margin-bottom:24px}.section-number{font-size:.8125rem;font-family:ui-monospace,monospace;color:var(--teal);padding-top:10px;flex-shrink:0}.section-heading p{color:var(--muted);margin-top:10px;max-width:860px}.panel{background:white;border:1px solid var(--line);border-radius:16px;overflow:hidden}.toolbar{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;background:#fafcfd}.toolbar p{font-size:.8125rem;color:var(--muted)}.notice{padding:15px 18px;background:var(--teal-bg);border-left:3px solid var(--teal);font-size:.9375rem;margin-top:18px;color:#25584f}.callout{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}.callout > div{padding:19px 22px;border-radius:11px;background:#e8eff5}.callout h3{font-size:1rem}.callout p{font-size:.875rem;color:var(--muted);margin-top:7px}
+.demo-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;padding:22px 24px;background:#eaf0f4}.demo-controls label{font-size:.8125rem;font-weight:650}select{display:block;min-width:0;width:100%;min-height:44px;padding:9px 28px 9px 10px;border:1px solid #b2c5d1;border-radius:7px;color:var(--ink);background:white;margin-top:7px;font-size:.875rem}.demo-body{display:grid;grid-template-columns:1fr 1.15fr}.journey-demo{padding:25px;border-right:1px solid var(--line);min-width:0}.context{font-size:.8125rem;color:var(--muted);padding:10px 12px;background:#f2f6f8;border-radius:7px;margin:16px 0 22px}.customer-header{display:flex;justify-content:space-between;align-items:start;gap:10px}.customer-header h3{font-size:1.3rem}.customer-header p{font-size:.875rem;color:var(--muted);margin-top:5px}.financial-card{margin-top:20px;padding:18px;background:var(--teal-bg);border:1px solid #b9dfd1;border-radius:10px}.financial-card strong{display:block;font-size:1.8rem;letter-spacing:-.04em;line-height:1.3;margin-top:6px}.financial-card p{font-size:.8125rem;color:#345d55;margin-top:5px}.financial-empty{padding:20px;margin-top:20px;border:1px dashed #b3c4d0;background:#f6f8fa;border-radius:10px;color:var(--muted);font-size:.875rem}.demo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.ui-message{font-size:.875rem;color:var(--muted);min-height:3em;margin-top:13px}.code-caption{font-size:.75rem;color:var(--muted);margin-top:16px}.inspector{padding:25px;background:#fbfcfd;min-width:0}.inspector-title{display:flex;justify-content:space-between;align-items:center;gap:10px}.decision-list{margin-top:15px;display:grid;gap:7px}.decision-button{display:grid;grid-template-columns:minmax(0,1fr) 63px 65px;gap:10px;align-items:center;width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;background:white;text-align:left;color:var(--ink)}.decision-button:hover{background:#f3f8f6}.decision-button[aria-pressed="true"]{border-color:var(--teal);background:#f0faf6;box-shadow:inset 3px 0 var(--teal)}.decision-button .action-label{font-size:.875rem;font-weight:650}.decision-button code{display:block;font-size:.6875rem;color:var(--muted);margin-top:2px}.bool{font-family:ui-monospace,monospace;font-size:.8125rem;text-align:center}.bool.true{color:var(--teal)}.bool.false{color:var(--muted)}.list-labels{display:grid;grid-template-columns:minmax(0,1fr) 63px 65px;gap:10px;padding:0 12px;font-size:.6875rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:18px}.detail-output{margin-top:18px;border-radius:10px;overflow:hidden;background:var(--navy);color:var(--code)}.detail-header{padding:11px 15px;background:#1b3e53;font-size:.75rem;overflow-wrap:anywhere}.detail-output pre{padding:17px}.decision-reason{color:var(--muted);font-size:.8125rem;margin-top:10px}.demo-footer{padding:15px 24px;border-top:1px solid var(--line);background:#f5f8fa;font-size:.8125rem;color:var(--muted)}.demo-footer strong{color:var(--ink)}.simulation-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.scenario-note{font-size:.8125rem;color:var(--muted);margin-top:10px}
+.architecture{padding:28px}.architecture-top{display:grid;grid-template-columns:1fr 40px 1fr 40px 1.15fr;align-items:stretch}.node{padding:21px;border:1px solid var(--line);border-radius:12px;min-width:0}.node h3{margin-top:10px}.node p{font-size:.875rem;color:var(--muted);margin-top:12px}.node.dark{background:var(--navy);color:white;border-color:var(--navy)}.node.dark .label,.node.dark p{color:#bbd2de}.node.teal{background:var(--teal-bg);border-color:#8ac1b3}.connector{display:flex;align-items:center;justify-content:center;color:#738f9f;font-size:1.6rem}.store-values{display:flex;gap:5px;flex-wrap:wrap;margin-top:16px}.store-values span{font-size:.75rem;padding:4px 7px;border-radius:4px;background:#22495d;color:#d2e7ef}.split-label{display:flex;align-items:center;gap:15px;justify-content:center;font-size:.75rem;color:var(--muted);margin:23px 0 17px}.split-label::before,.split-label::after{content:"";height:1px;flex:1;background:var(--line)}.api-branches{display:grid;grid-template-columns:1fr 1fr;gap:20px}.branch{display:flex;align-items:start;gap:20px;padding:22px;border:1px solid var(--line);border-radius:12px}.branch-icon{font-family:ui-monospace,monospace;font-size:1.6rem;color:var(--teal);line-height:1.2;flex-shrink:0}.branch h3{font-family:ui-monospace,monospace;font-size:1.05rem}.branch p{font-size:.875rem;color:var(--muted);margin-top:8px}.equality{background:#e9f0f5;border-radius:8px;padding:15px;margin-top:18px;text-align:center;font-size:.9375rem}.enforcement{padding:17px 24px;background:#f9fbfc;border-top:1px dashed #a4bbc8;font-size:.875rem;color:var(--muted)}
+.status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:22px}.status-card{padding:20px;border:1px solid var(--line);background:white;border-radius:12px}.status-card h3{font-size:1rem;margin-top:15px}.status-card p{font-size:.875rem;color:var(--muted);margin-top:8px}.status-card code{display:block;margin-top:15px}.table-wrap{border:1px solid var(--line);border-radius:12px;overflow-x:auto;margin-top:20px}table{border-collapse:collapse;width:100%;background:white;text-align:left;font-size:.875rem}th,td{padding:14px 17px;border-bottom:1px solid var(--line);vertical-align:top;min-width:130px}thead th{background:#eaf0f4;font-weight:650}tbody th{font-weight:650}tr:last-child td,tr:last-child th{border-bottom:0}
+.code-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:22px}.code-window{border-radius:13px;overflow:hidden;background:var(--navy);color:var(--code);min-width:0}.code-window pre{padding:23px}.code-title{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 22px;background:#1b3e53;font-size:.8125rem;color:#cee2ed}.token-comment{color:#aac4d2}.token-string{color:#91e2c9}.token-keyword{color:#a5c9ff}.explanations{display:grid;gap:13px}.explanation{background:white;border:1px solid var(--line);border-radius:11px;padding:20px}.explanation h3{font-size:1rem}.explanation p{font-size:.875rem;color:var(--muted);margin-top:8px}.type-box{margin-top:20px}.type-note{font-size:.875rem;color:var(--muted);margin-top:13px}.config-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:22px}.config-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.config-controls select{width:auto;min-width:140px;min-height:38px;margin:0}.policy-rules{margin:0;padding:0;list-style:none;counter-reset:rules;display:grid;gap:12px}.policy-rules li{background:white;padding:18px 20px;border:1px solid var(--line);border-radius:10px;counter-increment:rules}.policy-rules strong{display:block;font-size:.9375rem}.policy-rules strong::before{content:"0" counter(rules) " / ";font-family:ui-monospace,monospace;color:var(--teal)}.policy-rules p{font-size:.875rem;color:var(--muted);margin:7px 0 0}.subject-strip{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:17px 21px;margin-bottom:20px;border:1px solid #96cabc;border-radius:11px;background:var(--teal-bg)}.subject-strip p{font-size:.875rem;color:#2d5e53}.subject-strip code{color:#165b4c}
+.timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;list-style:none;padding:0;margin:0}.timeline li{background:white;border:1px solid var(--line);border-radius:12px;padding:21px}.step-number{display:block;color:var(--teal);font: .8125rem ui-monospace,monospace;margin-bottom:15px}.timeline h3{font-size:1.05rem}.timeline p{font-size:.875rem;color:var(--muted);margin-top:9px}.final-band{display:grid;grid-template-columns:1fr 1.1fr;gap:30px;align-items:center;padding:29px;background:var(--navy);color:white;border-radius:15px;margin-top:22px}.final-band p{font-size:.9375rem;color:#c2d8e4;margin-top:10px}.final-band pre{font-size:.875rem;color:var(--mint)}details{border-top:1px solid var(--line);margin-top:28px;padding:20px 0}summary{font-size:.9375rem;font-weight:650}.sources{list-style:none;padding:18px 0 0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:14px 25px;font-size:.875rem}.sources small{display:block;color:var(--muted);font-size:.8125rem;margin-top:3px}footer{display:flex;justify-content:space-between;gap:20px;padding:25px 0 38px;border-top:1px solid var(--line);font-size:.8125rem;color:var(--muted)}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1050px){.topbar-inner{padding:12px 24px;flex-wrap:wrap;gap:14px}nav{gap:16px}main{padding:0 24px}.hero{gap:25px}.demo-body{grid-template-columns:1fr 1fr}.journey-demo,.inspector{padding:20px}.decision-button,.list-labels{grid-template-columns:minmax(0,1fr) 45px 62px;gap:6px}.status-grid{grid-template-columns:1fr 1fr}.timeline{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){html{scroll-padding-top:140px}.topbar-inner{padding:11px 18px;gap:10px}.print{margin-left:auto}nav{order:3;flex-basis:100%;margin:0;gap:17px}nav a{font-size:.75rem}main{padding:0 18px}.hero{grid-template-columns:1fr;padding:35px 0 14px;gap:24px}.hero h1 br{display:none}.hero-copy{font-size:1rem}.api-summary{padding:22px}.section-heading{gap:12px}.section-heading p{font-size:.9375rem}.demo-controls{grid-template-columns:1fr 1fr;padding:20px}.demo-body{grid-template-columns:1fr}.journey-demo{border-right:0;border-bottom:1px solid var(--line)}.demo-footer{padding:17px 20px}.decision-button,.list-labels{grid-template-columns:minmax(0,1fr) 60px 65px;gap:9px}.architecture{padding:20px}.architecture-top{grid-template-columns:1fr}.architecture-top > .connector{transform:rotate(90deg);padding:6px}.api-branches,.code-grid,.config-grid,.callout,.final-band{grid-template-columns:1fr}.branch{padding:20px}.code-window pre{padding:20px}.subject-strip{align-items:start}.timeline{grid-template-columns:1fr 1fr}.sources{grid-template-columns:1fr}footer{flex-direction:column;gap:7px}.equality{font-size:.8125rem}}
+@media(max-width:420px){.brand{font-size:.8125rem}.print{padding:8px 10px}.demo-controls,.status-grid,.timeline{grid-template-columns:1fr}.section-number{display:none}nav{gap:12px}.decision-button,.list-labels{grid-template-columns:minmax(0,1fr) 40px 60px;gap:5px}.decision-button{padding:10px}.decision-button code{font-size:.6875rem}.inspector,.journey-demo{padding:18px}.code-title{padding:13px 16px;flex-wrap:wrap}.final-band{padding:24px}.customer-header{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{@page{size:A4;margin:14mm}body{background:white;font-size:10pt}.topbar,.skip,.demo-controls,.simulation-buttons,.demo-actions,.config-controls,.print{display:none!important}main{max-width:none;padding:0}.hero{grid-template-columns:1fr 1fr;padding:0 0 20px;gap:24px}h1{font-size:33pt}h2{font-size:22pt}h3{font-size:12pt}.hero-copy{font-size:10pt}.api-summary{padding:18px}.section-heading p{font-size:10pt}section{padding:22px 0;break-inside:auto}.panel,.code-window,.status-card,.timeline li,.final-band,.explanation,.policy-rules li{break-inside:avoid}.demo-body{grid-template-columns:1fr 1.1fr}.journey-demo,.inspector{padding:16px}.decision-button{grid-template-columns:minmax(0,1fr) 35px 52px;padding:8px}.decision-button .action-label{font-size:9pt}.decision-button code{font-size:7pt}.pill{font-size:8pt;padding:3px 5px}.demo-footer{font-size:9pt}.architecture-top{grid-template-columns:1fr 24px 1fr 24px 1.1fr}.node{padding:15px}.api-branches{grid-template-columns:1fr 1fr}.branch{padding:16px;gap:12px}.status-grid{grid-template-columns:repeat(4,1fr);gap:8px}.status-card{padding:14px}.status-card p{font-size:9pt}.code-grid,.config-grid{grid-template-columns:1fr}.code-window pre{font-size:9pt;padding:18px}.explanations{grid-template-columns:repeat(3,1fr)}.explanation{padding:14px}.explanation p{font-size:9pt}.policy-rules{grid-template-columns:1fr 1fr}.timeline{grid-template-columns:repeat(4,1fr);gap:8px}.timeline li{padding:14px}.timeline p{font-size:9pt}.callout{grid-template-columns:1fr 1fr}.table-wrap{overflow:visible}th,td{min-width:0;padding:10px;font-size:9pt}.sources{grid-template-columns:1fr 1fr}.sources li{break-inside:avoid}.final-band{grid-template-columns:1fr 1fr;padding:20px}*{print-color-adjust:exact;-webkit-print-color-adjust:exact}footer{font-size:8pt;padding-bottom:0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar"><div class="topbar-inner"><a class="brand" href="#main"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0c293c"/><path d="M8 16h6m0 0 7-7m-7 7 7 7" stroke="#71e1c6" stroke-width="3" fill="none"/></svg>Journey permissions</a><nav aria-label="Guide sections"><a href="#playground">Try the API</a><a href="#architecture">How it works</a><a href="#react">React usage</a><a href="#config">Configuration</a><a href="#lifecycle">Role switching</a></nav><button class="btn print" id="print-button" type="button">Print / PDF</button></div></header>
+<main id="main">
+  <div class="hero"><div><div class="eyebrow">Controller contract · React · Rsbuild Module Federation</div><h1>One hook.<br><span>Two ways to ask.</span></h1><p class="hero-copy">Use <code>can()</code> for a boolean. Use <code>getPermission()</code> for status and reason. Both read the same permission state for the logged-in employee and selected role.</p></div><div class="api-summary"><span class="label">One shared source of truth</span><pre style="margin-top:15px"><span class="token-keyword">const</span> { can, getPermission } = usePermissions(actions);</pre><div class="line"><code>can(action)</code><span aria-hidden="true">→</span><span class="result">true | false</span></div><div class="line"><code>getPermission(action)</code><span aria-hidden="true">→</span><span class="result">{ allowed, status, reason? }</span></div><p>The Journey passes action IDs. Its Controller obtains the authenticated staff ID and active role from the Host.</p></div></div>
+
+  <section id="playground" aria-labelledby="playground-title"><div class="section-heading"><span class="section-number">01 /</span><div><h2 id="playground-title">Simple controls. Detailed feedback.</h2><p>Change the simulated employee, role, or check behavior. Select an action on the right to inspect its full result. Different actions can have different statuses at the same time.</p></div></div>
+    <div class="panel">
+      <div class="toolbar"><div><span class="label">Interactive behavior model</span><p>Local simulation of the proposed React hook contract</p></div><span class="badge teal">Same Journey UI across Hosts</span></div>
+      <div class="demo-controls"><label for="host-select">Host adapter<select id="host-select"><option value="a">Host A · Operations</option><option value="b">Host B · Partner portal</option></select></label><label for="staff-select">Signed-in employee<select id="staff-select"><option value="5567">Staff 5567</option><option value="7788">Staff 7788</option><option value="9999">Staff 9999</option></select></label><label for="role-select">Selected role<select id="role-select"><option value="operator">Customer Operator</option><option value="manager">Customer Manager</option><option value="viewer">Viewer</option></select></label><label for="mode-select">Update permission check<select id="mode-select"><option value="normal">Normal response</option><option value="pending">Hold in loading</option><option value="error">Simulate service error</option></select></label></div>
+      <div class="demo-body"><div class="journey-demo"><span class="label">Reusable customer journey</span><div class="context" id="context-summary">Loading authorization context…</div><div class="customer-header"><div><h3>Example Customer</h3><p>Customer C123 · Example tenant</p></div><span class="badge">Synthetic data</span></div><div class="financial-card" id="financial-card" hidden><span class="label">Financial details</span><strong id="financial-value"></strong><p>Visible only when <code>can(readFinancials)</code> is true.</p></div><div class="financial-empty" id="financial-empty">Checking whether financial content is available…</div><div class="demo-actions"><button class="btn primary" id="update-button" type="button" disabled>Update contact</button><button class="btn" id="export-button" type="button" disabled>Export customer</button></div><p class="ui-message" id="ui-message" role="status">Checking update permission…</p><p class="code-caption">The update button uses <code>getPermission(update).allowed</code>; its message uses the same result’s <code>status</code> and <code>reason</code>.</p></div>
+      <div class="inspector"><div class="inspector-title"><span class="label">Controller permission store</span><span class="badge" id="version-label">Context v1</span></div><div class="list-labels" aria-hidden="true"><span>Action</span><span>can()</span><span>status</span></div><div class="decision-list" role="group" aria-label="Select an action to inspect"><button type="button" class="decision-button" id="select-read" data-action="customers.financials.read" aria-pressed="false"><span><span class="action-label">Read financials</span><code>customers.financials.read</code></span><span class="bool false" id="bool-read">false</span><span class="pill loading" id="status-read">loading</span></button><button type="button" class="decision-button" id="select-update" data-action="customers.contact.update" aria-pressed="true"><span><span class="action-label">Update contact</span><code>customers.contact.update</code></span><span class="bool false" id="bool-update">false</span><span class="pill loading" id="status-update">loading</span></button><button type="button" class="decision-button" id="select-export" data-action="customers.export" aria-pressed="false"><span><span class="action-label">Export customer</span><code>customers.export</code></span><span class="bool false" id="bool-export">false</span><span class="pill loading" id="status-export">loading</span></button></div><div class="detail-output"><div class="detail-header" id="result-label">getPermission("customers.contact.update")</div><pre id="result-json" aria-live="polite" aria-atomic="true">{
+  "status": "loading",
+  "allowed": false
+}</pre></div><p class="decision-reason" id="reason-message">Permission has not been confirmed yet.</p><div class="simulation-buttons"><button class="btn small" id="resolve-button" type="button" hidden>Resolve pending check</button><button class="btn small" id="retry-button" type="button" hidden>Recover &amp; retry update</button><button class="btn small" id="recheck-button" type="button">Recheck all actions</button></div><p class="scenario-note" id="scenario-note">Normal checks resolve automatically. Role and employee changes clear previous results immediately.</p></div></div>
+      <div class="demo-footer"><strong>Staff ID identifies the signed-in employee receiving permission.</strong> It is not the customer’s owner or a target passed by a Journey. The employee picker is for this simulation only; production identity comes from the authenticated session. All demo employees are assigned the three demo roles. No requests leave this file.</div>
+    </div>
+    <div class="notice"><strong>False means “not currently confirmed.”</strong> Loading, denial, and service failure all keep protected actions disabled. Their status and reason explain why.</div>
+  </section>
+
+  <section id="architecture" aria-labelledby="architecture-title"><div class="section-heading"><span class="section-number">02 /</span><div><h2 id="architecture-title">Two readers. One permission store.</h2><p>The Host loads the Journey through Rsbuild Module Federation and supplies its Controller adapter. Loading and caching happen outside rendering; both public functions are synchronous reads.</p></div></div>
+    <div class="panel"><div class="architecture" role="group" aria-label="Host context passes through its adapter into the Controller store. can and getPermission read the same state; backend APIs enforce data access."><div class="architecture-top"><div class="node"><span class="label">Trusted Host context</span><h3>Who is operating?</h3><p>Authenticated staff ID, selected role, tenant, and authorization-context revision.</p><p>The server validates role membership.</p></div><div class="connector" aria-hidden="true">→</div><div class="node teal"><span class="label">Replaceable Host adapter</span><h3>Load and normalize</h3><p>Batch requested actions through a backend decision API, or read a valid Host snapshot.</p><p>Map Host-specific results into the shared contract.</p></div><div class="connector" aria-hidden="true">→</div><div class="node dark"><span class="label">Journey Controller</span><h3>Permission store</h3><p>One result per action and authorization context. Publish updates to subscribed React components.</p><div class="store-values"><span>allowed</span><span>denied</span><span>loading</span><span>error</span></div></div></div><div class="split-label">The same subscribed snapshot is exposed in two forms</div><div class="api-branches"><div class="branch"><span class="branch-icon" aria-hidden="true">01</span><div><h3>can(action)</h3><p>Returns <strong>true or false</strong>. Use for visibility, disabled states, and simple conditional rendering.</p></div></div><div class="branch"><span class="branch-icon" aria-hidden="true">02</span><div><h3>getPermission(action)</h3><p>Returns <strong>allowed, status, and optional reason</strong>. Use for loading messages, denial explanations, and service errors.</p></div></div></div><div class="equality"><code>can(action) === getPermission(action).allowed</code></div></div><div class="enforcement"><strong>Backend enforcement remains independent.</strong> A UI result does not authorize a write. APIs verify the current identity, role, requested action, record, and fields before returning or changing protected data.</div></div>
+    <div class="status-grid"><article class="status-card"><span class="pill loading">loading</span><h3>Not known yet</h3><p>The check is in progress. Show progress and keep the action disabled.</p><code>allowed: false</code></article><article class="status-card"><span class="pill allowed">allowed</span><h3>Permission confirmed</h3><p>Enable the corresponding control or show authorized content.</p><code>allowed: true</code></article><article class="status-card"><span class="pill denied">denied</span><h3>Policy says no</h3><p>Hide or disable the action. Explain the restriction when useful.</p><code>allowed: false</code></article><article class="status-card"><span class="pill error">error</span><h3>Check failed</h3><p>Keep the action disabled. Explain the check failed and offer retry.</p><code>allowed: false</code></article></div>
+  </section>
+
+  <section id="react" aria-labelledby="react-title"><div class="section-heading"><span class="section-number">03 /</span><div><h2 id="react-title">Use detail only where you need it.</h2><p>One hook provides the full screen’s permission interface. A dedicated result variable is needed only for an action with detailed feedback.</p></div></div>
+    <div class="code-grid"><div class="code-window"><div class="code-title"><span>CustomerDetails.tsx</span><span>Proposed public API</span></div><pre><span class="token-keyword">const</span> { can, getPermission } = usePermissions([
+  <span class="token-string">"customers.financials.read"</span>,
+  <span class="token-string">"customers.contact.update"</span>,
+  <span class="token-string">"customers.export"</span>,
+]);
+
+<span class="token-keyword">const</span> update = getPermission(
+  <span class="token-string">"customers.contact.update"</span>
+);
+
+<span class="token-keyword">return</span> (
+  &lt;&gt;
+    {can(<span class="token-string">"customers.financials.read"</span>) &amp;&amp; (
+      &lt;FinancialDetails /&gt;
+    )}
+
+    &lt;button disabled={!update.allowed}&gt;
+      Update contact
+    &lt;/button&gt;
+
+    {update.status === <span class="token-string">"loading"</span> &amp;&amp; (
+      &lt;p&gt;Checking permission…&lt;/p&gt;
+    )}
+    {update.status === <span class="token-string">"denied"</span> &amp;&amp; (
+      &lt;p&gt;{permissionMessage(update.reason)}&lt;/p&gt;
+    )}
+    {update.status === <span class="token-string">"error"</span> &amp;&amp; (
+      &lt;p&gt;Permission check failed. Try again.&lt;/p&gt;
+    )}
+
+    &lt;button disabled={!can(<span class="token-string">"customers.export"</span>)}&gt;
+      Export customer
+    &lt;/button&gt;
+  &lt;/&gt;
+);</pre></div><div class="explanations"><div class="explanation"><h3>Keep identity inside the Controller</h3><p>Journey engineers pass business action IDs. The Host adapter supplies the current staff ID and selected role. A screen cannot switch identity by passing a different staff ID.</p></div><div class="explanation"><h3>Subscribe once; read synchronously</h3><p>The hook declares actions, deduplicates requests, and subscribes to store changes. <code>can()</code> and <code>getPermission()</code> never return promises or fetch during render. Both read the same snapshot for that render.</p></div><div class="explanation"><h3>Use action-specific status</h3><p>One permission can be allowed while another is loading or has failed. An optional screen-level loading summary must not replace each action’s own result.</p></div><div class="explanation"><h3>Normalize safe reason codes</h3><p>Map Host responses to stable codes such as <code>STAFF_NOT_GRANTED</code> or <code>CHECK_FAILED</code>. Translate codes into helpful messages; do not display raw backend errors.</p></div></div></div>
+    <div class="code-window type-box"><div class="code-title"><span>Controller contract</span><span>TypeScript prevents contradictory states</span></div><pre><span class="token-keyword">type</span> PermissionResult =
+  | { status: <span class="token-string">"allowed"</span>; allowed: <span class="token-keyword">true</span> }
+  | {
+      status: <span class="token-string">"loading"</span> | <span class="token-string">"denied"</span> | <span class="token-string">"error"</span>;
+      allowed: <span class="token-keyword">false</span>;
+      reason?: string;
+    };
+
+<span class="token-keyword">type</span> PermissionApi = {
+  can(action: ActionId): boolean;
+  getPermission(action: ActionId): PermissionResult;
+};</pre></div><p class="type-note"><code>status</code> is the source of truth. Derive <code>allowed</code> from it; never update these independently. For an external Controller store, React’s <code>useSyncExternalStore</code> can provide subscriptions, with stable cached snapshots. A Context provider is also valid.</p>
+    <div class="table-wrap"><table><caption class="sr-only">Normalized permission reason codes and their UI meaning</caption><thead><tr><th scope="col">Status</th><th scope="col">Example reason</th><th scope="col">Meaning for the user</th></tr></thead><tbody><tr><th scope="row">denied</th><td><code>ACTION_NOT_GRANTED</code></td><td>The selected role has no grant for this action.</td></tr><tr><th scope="row">denied</th><td><code>STAFF_NOT_GRANTED</code></td><td>The employee is not included in this role’s action grant.</td></tr><tr><th scope="row">denied</th><td><code>EXPLICIT_DENY</code></td><td>An explicit restriction applies to this employee.</td></tr><tr><th scope="row">error</th><td><code>CHECK_FAILED</code></td><td>The permission service could not complete the check.</td></tr><tr><th scope="row">loading</th><td>Usually omitted</td><td>The result is not available yet.</td></tr></tbody></table></div>
+  </section>
+
+  <section id="config" aria-labelledby="config-title"><div class="section-heading"><span class="section-number">04 /</span><div><h2 id="config-title">Role grants, with employee exceptions.</h2><p>This illustrative configuration grants an action to everyone operating under a role, or only to selected employees. A matching explicit denial overrides an allow.</p></div></div>
+    <div class="subject-strip"><div><span class="label">Authenticated principal</span><p><code>staffId = "5567"</code> identifies the employee receiving permission.</p></div><div><span class="label">Journey request</span><code>can("customers.contact.update")</code></div></div>
+    <div class="config-grid"><div class="code-window"><div class="code-title"><span>Permission policy · illustrative JSON</span><div class="config-controls"><label class="sr-only" for="config-role">Policy role to inspect</label><select id="config-role"><option value="operator">Customer Operator</option><option value="manager">Customer Manager</option><option value="viewer">Viewer</option></select></div></div><pre id="policy-json"></pre></div><ol class="policy-rules"><li><strong>Validate the selected role</strong><p>The server resolves the signed-in employee, verifies role assignment, and establishes the authorized tenant context. An employee-specific grant does not grant the role itself.</p></li><li><strong>Find the exact action</strong><p>Evaluate only the active role’s configuration. Missing or unknown actions are denied. Do not merge permissions from all assigned roles.</p></li><li><strong>Apply matching denials first</strong><p>If the authenticated staff ID appears in <code>deny.staffIds</code>, deny the action even when <code>allow.allStaff</code> is true.</p></li><li><strong>Evaluate grants</strong><p>Allow if <code>allow.allStaff</code> is true or the employee is included in <code>allow.staffIds</code>. Otherwise deny. Use exact string IDs.</p></li></ol></div>
+    <div class="notice"><strong>“All staff” is scoped to this selected role and tenant.</strong> It does not mean every employee in the organization. These are action entitlements; record ownership, permitted fields, and workflow conditions remain additional backend checks.</div>
+    <div class="table-wrap"><table><caption class="sr-only">Examples using the policy shown in this guide</caption><thead><tr><th scope="col">Selected role</th><th scope="col">Signed-in staff</th><th scope="col">Contact update result</th><th scope="col">Why</th></tr></thead><tbody><tr><th scope="row">Operator</th><td>5567</td><td>Allowed</td><td>Employee is in the allow list.</td></tr><tr><th scope="row">Operator</th><td>7788</td><td>Denied</td><td>Explicit deny overrides the allow list.</td></tr><tr><th scope="row">Operator</th><td>9999</td><td>Denied</td><td>Employee has no matching grant.</td></tr><tr><th scope="row">Manager</th><td>5567</td><td>Allowed</td><td>All staff assigned to this role are granted the action.</td></tr><tr><th scope="row">Manager</th><td>9999</td><td>Denied</td><td>Explicit deny overrides the all-staff grant.</td></tr></tbody></table></div>
+    <div class="callout"><div><h3>If a Host uses action:staffId strings</h3><p>The adapter can normalize <code>customers.contact.update:5567</code> into an employee-specific grant. The Journey keeps using the plain business action ID.</p></div><div><h3>Choose where policy evaluation runs</h3><p>The Controller can consume a valid Host snapshot or server decisions. Keep large employee lists and confidential policy details on the server when appropriate; the UI needs its own effective decisions.</p></div></div>
+  </section>
+
+  <section id="lifecycle" aria-labelledby="lifecycle-title"><div class="section-heading"><span class="section-number">05 /</span><div><h2 id="lifecycle-title">Keep decisions attached to their context.</h2><p>A role switch must immediately stop the Journey from using the previous role’s permissions. A late response must never restore an old grant.</p></div></div>
+    <ol class="timeline"><li><span class="step-number">01 / SELECT</span><h3>Validate a new role</h3><p>The Host requests the change. The backend validates membership and rotates the authorization context.</p></li><li><span class="step-number">02 / INVALIDATE</span><h3>Return loading / false</h3><p>Discard old decision snapshots and sensitive data. Disable protected interactions during the transition.</p></li><li><span class="step-number">03 / REFRESH</span><h3>Check the new context</h3><p>Batch the screen’s action IDs. Ignore responses whose context or request generation is superseded.</p></li><li><span class="step-number">04 / NOTIFY</span><h3>Rerender subscribers</h3><p>Publish fresh per-action results. Recheck routes and remove content the new role cannot access.</p></li></ol>
+    <div class="callout"><div><h3>Cache with identity and policy scope</h3><p>Partition by Host/tenant, authenticated employee, active-role context, and action. Track policy revision or expiry and invalidate on changes. Add resource identity when checks become resource-specific.</p></div><div><h3>Do not create checks during render</h3><p>Declare needed actions in the hook or preload them at Journey entry. Undeclared or unknown actions must not silently allow access. A valid snapshot is required before <code>can()</code> returns true.</p></div></div>
+    <div class="final-band"><div><span class="badge dark">Recommended public interface</span><h3 style="margin-top:14px">A short call for the common case.<br>A full result when it matters.</h3><p>Keep the Controller contract stable across Hosts. Centralize fetching, staff context, role changes, and reason mapping behind it.</p></div><pre>can(action)
+  → boolean for UI controls
+
+getPermission(action)
+  → allowed + status + reason
+
+Same store. Same decision. Same render.</pre></div>
+    <details open><summary>Assumptions and technical references</summary><p style="margin-top:13px;color:var(--muted);font-size:.875rem">This is a design guide and local behavior model, not a production React implementation or an authorization service. All demo data is synthetic. The Controller package and React context must be shared consistently across federated modules. Browser checks improve UX; APIs enforce access on every operation.</p><ul class="sources"><li><a href="https://react.dev/reference/react/useSyncExternalStore" target="_blank" rel="noopener noreferrer">React · useSyncExternalStore</a><small>Subscribe to external stores with stable snapshots.</small></li><li><a href="https://react.dev/reference/react/useContext" target="_blank" rel="noopener noreferrer">React · useContext</a><small>Provider and consumers must use the same context object.</small></li><li><a href="https://module-federation.io/configure/shared" target="_blank" rel="noopener noreferrer">Module Federation · Shared dependencies</a><small>Singletons and compatible dependency sharing.</small></li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer">OWASP · Authorization guidance</a><small>Default denial and server-side checks on every request.</small></li></ul></details>
+  </section>
+  <footer><span>Permission hooks · Controller-first entitlement design</span><span>Single file · Offline interactions · Print-ready · References require internet</span></footer>
+</main>
+<script>
+"use strict";
+(() => {
+  const $=id=>document.getElementById(id);
+  const ACTION={read:"customers.financials.read",update:"customers.contact.update",export:"customers.export"};
+  const ACTIONS=Object.values(ACTION);
+  const ROLE_NAMES={operator:"Customer Operator",manager:"Customer Manager",viewer:"Viewer"};
+  const HOST_NAMES={a:"Host A · Operations",b:"Host B · Partner portal"};
+  const grant=(allStaff=false,staffIds=[],deny=[])=>({allow:{allStaff,staffIds},deny:{staffIds:deny}});
+  // Synthetic SERVER policy for the interactive example; not browser enforcement.
+  const POLICY={schemaVersion:1,policyVersion:42,roles:{
+    operator:{permissions:{
+      [ACTION.read]:grant(true,[],["9999"]),
+      [ACTION.update]:grant(false,["5567","7788"],["7788"])
+    }},
+    manager:{permissions:{
+      [ACTION.read]:grant(true),
+      [ACTION.update]:grant(true,[],["9999"]),
+      [ACTION.export]:grant(true)
+    }},
+    viewer:{permissions:{"customers.journey.access":grant(true)}}
+  }};
+  const ASSIGNED_ROLES={"5567":["viewer","operator","manager"],"7788":["viewer","operator","manager"],"9999":["viewer","operator","manager"]};
+  const MESSAGES={
+    ACTION_NOT_GRANTED:"Your selected role does not grant this action.",
+    STAFF_NOT_GRANTED:"Your account is not included in this role’s grant for the action.",
+    EXPLICIT_DENY:"An explicit restriction prevents your account from using this action.",
+    CHECK_FAILED:"Permission could not be checked. Please try again.",
+    ROLE_NOT_ASSIGNED:"This role is not assigned to the authenticated employee.",
+    CONTEXT_UNAVAILABLE:"A valid authenticated context is required.",
+    UNKNOWN_ACTION:"This action is not registered for the screen."
+  };
+  const result=(status,reason)=>Object.freeze({status,allowed:status==="allowed",...(reason?{reason}:{})});
+  const LOADING=result("loading");
+  const UNKNOWN=result("denied","UNKNOWN_ACTION");
+  const state={host:"a",staffId:"5567",role:"operator",mode:"normal",contextVersion:1,requestVersion:0,selectedAction:ACTION.update};
+  let decisions=Object.fromEntries(ACTIONS.map(a=>[a,LOADING]));
+  const listeners=new Set();
+  const pendingTimers=new Set();
+  let queuedUpdate=null;
+  // Both functions read the same result object from the current snapshot.
+  const getPermission=action=>Object.prototype.hasOwnProperty.call(decisions,action)?decisions[action]:UNKNOWN;
+  const can=action=>getPermission(action).allowed;
+  const publish=()=>listeners.forEach(listener=>listener());
+  const subscribe=listener=>{listeners.add(listener);return()=>listeners.delete(listener);};
+  function mockServerEvaluate(context,action){
+    if(!context.staffId || context.tenant!=="example-tenant") return result("denied","CONTEXT_UNAVAILABLE");
+    if(!ASSIGNED_ROLES[context.staffId]?.includes(context.role)) return result("denied","ROLE_NOT_ASSIGNED");
+    if(!ACTIONS.includes(action)) return UNKNOWN;
+    const rule=POLICY.roles[context.role]?.permissions[action];
+    if(!rule) return result("denied","ACTION_NOT_GRANTED");
+    if(rule.deny.staffIds.includes(context.staffId)) return result("denied","EXPLICIT_DENY");
+    if(rule.allow.allStaff || rule.allow.staffIds.includes(context.staffId)) return result("allowed");
+    return result("denied","STAFF_NOT_GRANTED");
+  }
+  function schedule(fn,delay){
+    const timer=setTimeout(()=>{pendingTimers.delete(timer);fn();},delay);
+    pendingTimers.add(timer);
+  }
+  function beginChecks(contextChanged=false){
+    pendingTimers.forEach(clearTimeout);pendingTimers.clear();queuedUpdate=null;
+    if(contextChanged) state.contextVersion+=1;
+    state.requestVersion+=1;
+    const requestVersion=state.requestVersion;
+    const contextVersion=state.contextVersion;
+    const context={staffId:state.staffId,role:state.role,host:state.host,tenant:"example-tenant"};
+    const current=()=>requestVersion===state.requestVersion && contextVersion===state.contextVersion;
+    decisions=Object.fromEntries(ACTIONS.map(a=>[a,LOADING]));
+    publish();
+    schedule(()=>{
+      if(!current()) return;
+      decisions={...decisions,[ACTION.read]:mockServerEvaluate(context,ACTION.read),[ACTION.export]:mockServerEvaluate(context,ACTION.export)};
+      publish();
+    },300);
+    const resolveUpdate=()=>{
+      if(!current()) return;
+      decisions={...decisions,[ACTION.update]:mockServerEvaluate(context,ACTION.update)};
+      queuedUpdate=null;publish();
+    };
+    if(state.mode==="pending") queuedUpdate=resolveUpdate;
+    else schedule(()=>{
+      if(!current()) return;
+      if(state.mode==="error"){
+        decisions={...decisions,[ACTION.update]:result("error","CHECK_FAILED")};publish();
+      }else resolveUpdate();
+    },650);
+    // Publish controls after a held response is registered.
+    publish();
+  }
+  function renderPolicy(){
+    const role=$("config-role").value || "operator";
+    $("policy-json").textContent=JSON.stringify({schemaVersion:POLICY.schemaVersion,policyVersion:POLICY.policyVersion,roles:{["customer-"+role]:POLICY.roles[role]}},null,2);
+  }
+  function render(){
+    $("context-summary").textContent=HOST_NAMES[state.host]+" · staff "+state.staffId+" · "+ROLE_NAMES[state.role];
+    $("version-label").textContent="Context v"+state.contextVersion;
+    for(const [key,action] of Object.entries(ACTION)){
+      const permission=getPermission(action);
+      $("bool-"+key).textContent=String(can(action));
+      $("bool-"+key).className="bool "+String(can(action));
+      $("status-"+key).textContent=permission.status;
+      $("status-"+key).className="pill "+permission.status;
+      $("select-"+key).setAttribute("aria-pressed",String(action===state.selectedAction));
+    }
+    const permission=getPermission(state.selectedAction);
+    $("result-label").textContent='getPermission("'+state.selectedAction+'")';
+    $("result-json").textContent=JSON.stringify(permission,null,2);
+    $("reason-message").textContent=permission.status==="allowed"?"Permission is confirmed for this employee under the selected role.":permission.status==="loading"?"Permission has not been confirmed yet.":MESSAGES[permission.reason]||"This action is unavailable.";
+    // No hidden financial value remains in the rendered UI after invalidation.
+    const showFinancials=can(ACTION.read);
+    $("financial-card").hidden=!showFinancials;
+    $("financial-empty").hidden=showFinancials;
+    $("financial-value").textContent=showFinancials?"$125,000":"";
+    const read=getPermission(ACTION.read);
+    $("financial-empty").textContent=read.status==="loading"?"Previous context data cleared. Checking whether financial content is available…":"Financial details are unavailable. The real API must omit unauthorized fields from its response.";
+    const update=getPermission(ACTION.update);
+    $("update-button").disabled=!update.allowed;
+    $("export-button").disabled=!can(ACTION.export);
+    $("ui-message").textContent=update.status==="loading"?"Checking update permission…":update.status==="allowed"?"Contact updates are available for your account under this role.":MESSAGES[update.reason]||"Contact updates are unavailable.";
+    $("resolve-button").hidden=state.mode!=="pending" || update.status!=="loading" || !queuedUpdate;
+    $("retry-button").hidden=update.status!=="error";
+    $("scenario-note").textContent=state.mode==="pending"?"Only the update check is held in loading. Other actions resolve independently. Use “Resolve pending check” to finish it.":state.mode==="error"?"Only the update check fails. An error is not a policy denial; “Recover & retry update” models service recovery.":"Normal checks resolve automatically. Role and employee changes clear previous results immediately.";
+  }
+  subscribe(render);
+  $("host-select").addEventListener("change",event=>{state.host=event.target.value;beginChecks(true);});
+  $("staff-select").addEventListener("change",event=>{state.staffId=event.target.value;beginChecks(true);});
+  $("role-select").addEventListener("change",event=>{state.role=event.target.value;$("config-role").value=state.role;renderPolicy();beginChecks(true);});
+  $("mode-select").addEventListener("change",event=>{state.mode=event.target.value;beginChecks();});
+  $("config-role").addEventListener("change",renderPolicy);
+  Object.entries(ACTION).forEach(([key,action])=>$("select-"+key).addEventListener("click",()=>{state.selectedAction=action;render();}));
+  $("resolve-button").addEventListener("click",()=>{if(queuedUpdate)queuedUpdate();});
+  $("retry-button").addEventListener("click",()=>{
+    state.mode="normal";$("mode-select").value="normal";
+    const requestVersion=state.requestVersion,contextVersion=state.contextVersion;
+    const context={staffId:state.staffId,role:state.role,host:state.host,tenant:"example-tenant"};
+    decisions={...decisions,[ACTION.update]:LOADING};publish();
+    schedule(()=>{if(requestVersion!==state.requestVersion||contextVersion!==state.contextVersion)return;decisions={...decisions,[ACTION.update]:mockServerEvaluate(context,ACTION.update)};publish();},450);
+  });
+  $("recheck-button").addEventListener("click",()=>beginChecks());
+  $("update-button").addEventListener("click",()=>{if(can(ACTION.update))$("ui-message").textContent="The contact editor would open. The real save API must independently authorize the record and requested fields.";});
+  $("export-button").addEventListener("click",()=>{if(can(ACTION.export))$("ui-message").textContent="The export would be requested. Its API must independently check permission and filter the exported data.";});
+  $("print-button").addEventListener("click",()=>window.print());
+  $("config-role").value=state.role;renderPolicy();beginChecks();
+})();
+</script>
+</body>
+</html>
