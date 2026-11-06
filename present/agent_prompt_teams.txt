@@ -1,0 +1,14 @@
+Build a local Node.js prototype with Playwright and the GitHub Copilot SDK.
+
+Open Teams web in a visible browser with a dedicated local browser profile.
+Let me complete company SSO and MFA manually and open the target group chat.
+After I confirm the chat, watch only that conversation for new messages.
+
+When a new message contains "Hi qknow", send only the question after
+the phrase to the Copilot SDK and print the answer in the terminal.
+Ignore messages already visible when monitoring starts and process
+each new message once. Pause if I leave the selected chat or Teams
+asks me to sign in again. Keep this first version in draft mode.
+
+First verify that Playwright can read one new test message from the
+selected chat. Then connect the Copilot SDK.
