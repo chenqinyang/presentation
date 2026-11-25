@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CopilotKit v2 across Module Federation apps with mixed React versions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f6f4;--surface:#ffffff;--ink:#1b2430;--mute:#5a6675;--line:#d5dad6;--host:#2f5d8a;--host-bg:#e4edf6;--content:#2d7a5f;--content-bg:#e1f1ea;--panel:#a65a1e;--panel-bg:#f8eadb;--bridge:#5b3f8c;--bridge-bg:#ece6f6;--code-bg:#1d242d;--code-ink:#e3e8ee;--bad:#a3322b;--good:#2d7a5f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--surface:#1c222a;--ink:#e6eaef;--mute:#9aa6b4;--line:#323b46;--host:#7fb0e0;--host-bg:#1d2d3f;--content:#6fcaa3;--content-bg:#173226;--panel:#e8a468;--panel-bg:#3a2816;--bridge:#b9a0ec;--bridge-bg:#2b2342;--code-bg:#0e1216;--bad:#e8837c;--good:#6fcaa3}}
+:root[data-theme="dark"]{--bg:#14181d;--surface:#1c222a;--ink:#e6eaef;--mute:#9aa6b4;--line:#323b46;--host:#7fb0e0;--host-bg:#1d2d3f;--content:#6fcaa3;--content-bg:#173226;--panel:#e8a468;--panel-bg:#3a2816;--bridge:#b9a0ec;--bridge-bg:#2b2342;--code-bg:#0e1216;--bad:#e8837c;--good:#6fcaa3}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.15;margin:0 0 14px;font-weight:600;letter-spacing:-.01em}
+h2{font-size:24px;margin:56px 0 12px;font-weight:600;letter-spacing:-.005em}
+h3{font-size:17px;margin:28px 0 6px;font-weight:600}
+p{margin:0 0 14px;max-width:72ch}
+.lede{font-size:19px;color:var(--mute);max-width:64ch}
+code{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:.88em;background:var(--bridge-bg);padding:1px 5px;border-radius:3px}
+pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:6px;overflow-x:auto;font:13px/1.55 "IBM Plex Mono",ui-monospace,Menlo,monospace;margin:10px 0 20px}
+pre code{background:none;padding:0;font-size:inherit}
+.fn{font:500 12.5px "IBM Plex Mono",monospace;color:var(--mute);margin:18px 0 -4px}
+.verdict{border-left:4px solid var(--bridge);background:var(--surface);padding:16px 20px;margin:28px 0;border-radius:0 6px 6px 0}
+.verdict p:last-child{margin:0}
+.scroll{overflow-x:auto;margin:12px 0 20px}
+table{border-collapse:collapse;width:100%;min-width:640px;background:var(--surface);font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border:1px solid var(--line)}
+th{font-weight:600;background:var(--bg)}
+tr.pick td{background:var(--bridge-bg)}
+.yes{color:var(--good);font-weight:600}.no{color:var(--bad);font-weight:600}
+svg{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+svg text{font-family:"IBM Plex Sans",system-ui,sans-serif;fill:var(--ink);font-size:13px}
+svg .s{font-size:11.5px;fill:var(--mute)}
+ol,ul{max-width:72ch;padding-left:22px}li{margin-bottom:6px}
+.warn{border:1px solid var(--bad);border-radius:6px;padding:12px 16px;background:var(--surface);margin:16px 0}
+a{color:var(--host)}
+@media (max-width:600px){main{padding:24px 16px 60px}}
+</style>
+</head>
+<body>
+<main>
+<h1>One CopilotKit v2 brain, three React versions</h1>
+<p class="lede">Host UI (React 19.3.1), Content UI (19.2.8) and AI Panel UI (19.2.9) can share one CopilotKit session without aligning React, if the shared part contains no React at all.</p>
+
+<div class="verdict">
+<p><strong>Recommendation.</strong> Put a small framework-agnostic <em>bridge</em> in the Host. Content UI registers context, tools and components into it. The AI Panel reads from it and talks to the agent. Each app keeps its own React and its own thin hooks. Components cross the boundary as <code>mount(el, props)</code> functions, never as React components.</p>
+</div>
+
+<h2>Why the versions matter</h2>
+<p>CopilotKit’s React layer is built on React context and hooks. Both are tied to the React instance that created them. When three bundles each carry their own React and their own <code>@copilotkit/react-core</code>, you get three independent providers: the Content UI registers into one store and the AI Panel reads from another, so it sees nothing.</p>
+<p>Two separate issues follow:</p>
+<ul>
+<li><strong>Shared state.</strong> Registrations and the agent must live in exactly one object that all three apps can reach.</li>
+<li><strong>Cross-tree rendering.</strong> A tool UI registered by Content UI is displayed inside the AI Panel. If the panel’s React renders a function component that calls hooks from Content’s React copy, the hook runs without a dispatcher and throws “Invalid hook call”. Plain React elements are compatible across 19.x, but components with hooks are not.</li>
+</ul>
+
+<h2>Options compared</h2>
+<div class="scroll"><table>
+<thead><tr><th>Option</th><th>How it works</th><th>Pros</th><th>Cons</th></tr></thead>
+<tbody>
+<tr><td>A. Share React as singleton</td><td>Mark <code>react</code>, <code>react-dom</code> and <code>@copilotkit/*</code> as singleton in Module Federation with range <code>^19.2.0</code>. Runtime picks one version (the highest, 19.3.1).</td><td>Least code. Normal CopilotKit hooks work everywhere, components render across trees.</td><td>Versions are aligned at runtime anyway. Remotes run on a React they weren’t built against, and any future major bump breaks the whole page.</td></tr>
+<tr class="pick"><td><strong>B. Framework-agnostic bridge (recommended)</strong></td><td>Share only a React-free singleton. Each app bundles its own React and adapts the bridge with a small hook.</td><td>True independence. Each team upgrades React alone. Fails in one place if a contract breaks.</td><td>You own a small contract (about 150 lines) and must render shared components through <code>mount()</code>.</td></tr>
+<tr><td>C. iframe and postMessage</td><td>AI Panel in an iframe, with messages for context and tool calls.</td><td>Total isolation.</td><td>Tool results, streaming and component rendering all need serialization. Heavy for this case.</td></tr>
+</tbody></table></div>
+<p>Pick A if you want something working this week and accept a temporary runtime alignment. Pick B if independent React upgrades are the actual goal, which is what you described.</p>
+
+<h2>Architecture for option B</h2>
+<svg viewBox="0 0 880 400" role="img" aria-label="Architecture: Host owns the bridge, Content UI registers into it, AI Panel reads from it and renders components through mount functions">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--mute)"/></marker></defs>
+<rect x="10" y="10" width="860" height="380" rx="8" fill="var(--host-bg)" stroke="var(--host)"/>
+<text x="26" y="36" style="font-weight:600">Host UI · React 19.3.1 · menu, module loading</text>
+<rect x="290" y="62" width="300" height="118" rx="8" fill="var(--bridge-bg)" stroke="var(--bridge)"/>
+<text x="440" y="88" text-anchor="middle" style="font-weight:600">copilot-bridge (no React)</text>
+<text x="440" y="110" text-anchor="middle" class="s">scoped registry: context, tools, components</text>
+<text x="440" y="128" text-anchor="middle" class="s">one CopilotKitCore and agent connection</text>
+<text x="440" y="146" text-anchor="middle" class="s">shared as a Module Federation singleton</text>
+<text x="440" y="164" text-anchor="middle" class="s">scope = active menu item</text>
+<rect x="30" y="230" width="380" height="140" rx="8" fill="var(--content-bg)" stroke="var(--content)"/>
+<text x="46" y="256" style="font-weight:600">Content UI · React 19.2.8 (own copy)</text>
+<text x="46" y="280" class="s">useBridgeContext(…)  useBridgeTool(…)</text>
+<text x="46" y="298" class="s">component = { name, schema, mount(el, props) }</text>
+<text x="46" y="316" class="s">registers on mount, unregisters on unmount</text>
+<text x="46" y="340" class="s">swapped by the Host menu</text>
+<rect x="470" y="230" width="380" height="140" rx="8" fill="var(--panel-bg)" stroke="var(--panel)"/>
+<text x="486" y="256" style="font-weight:600">AI Panel UI · React 19.2.9 (own copy)</text>
+<text x="486" y="280" class="s">agent = bridge.getAgent()</text>
+<text x="486" y="298" class="s">reads context, runs tools, streams messages</text>
+<text x="486" y="316" class="s">renders components by calling mount() into a div</text>
+<text x="486" y="340" class="s">stays mounted across menu changes</text>
+<path d="M220 230 L360 182" stroke="var(--mute)" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+<text x="228" y="206" class="s">register</text>
+<path d="M660 230 L520 182" stroke="var(--mute)" stroke-width="1.5" fill="none" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="610" y="206" class="s">read / invoke</text>
+</svg>
+<p></p>
+<p>Because the bridge has no React import, it never touches a hook or a context. Only plain objects, functions and JSON-serializable values cross the boundary.</p>
+
+<h2>Implementation</h2>
+
+<h3>1. The bridge package</h3>
+<p>Publish it as an internal package (<code>@acme/copilot-bridge</code>) with no dependency on React. The Host creates it once and exposes it through Module Federation. Check the CopilotKit v2 API names below against the version you installed: the registration calls on the core object may be named differently.</p>
+<div class="fn">copilot-bridge/src/index.ts</div>
+<pre><code>import { CopilotKitCore } from "@copilotkit/core"; // framework-agnostic core
+
+type Scope = string;
+type Off = () =&gt; void;
+
+export interface MountableComponent {
+  name: string;
+  schema: unknown;                       // JSON Schema, not a zod instance
+  mount(el: HTMLElement, props: any): () =&gt; void; // returns unmount
+}
+
+class Bridge {
+  core = new CopilotKitCore({ runtimeUrl: "/api/copilotkit" });
+  private offs = new Map&lt;Scope, Set&lt;Off&gt;&gt;();
+  components = new Map&lt;string, MountableComponent&gt;();
+  private listeners = new Set&lt;() =&gt; void&gt;();
+
+  private track(scope: Scope, off: Off): Off {
+    (this.offs.get(scope) ?? this.offs.set(scope, new Set()).get(scope)!).add(off);
+    return () =&gt; { off(); this.offs.get(scope)?.delete(off); };
+  }
+  registerContext(scope: Scope, ctx: { description: string; value: unknown }) {
+    return this.track(scope, this.core.addContext(ctx));      // verify name
+  }
+  registerTool(scope: Scope, tool: { name: string; description: string;
+      parameters: unknown; handler(args: any): Promise&lt;unknown&gt; | unknown }) {
+    return this.track(scope, this.core.addTool(tool));         // verify name
+  }
+  registerComponent(scope: Scope, c: MountableComponent) {
+    this.components.set(c.name, c); this.emit();
+    return this.track(scope, () =&gt; { this.components.delete(c.name); this.emit(); });
+  }
+  clearScope(scope: Scope) { this.offs.get(scope)?.forEach(o =&gt; o()); this.offs.delete(scope); }
+  getAgent(id = "default") { return this.core.getAgent(id); }  // verify name
+  subscribe(fn: () =&gt; void) { this.listeners.add(fn); return () =&gt; this.listeners.delete(fn); }
+  private emit() { this.listeners.forEach(f =&gt; f()); }
+}
+
+// one instance per page, even if the module were loaded twice
+const KEY = Symbol.for("acme.copilot.bridge");
+export const bridge: Bridge =
+  ((globalThis as any)[KEY] ??= new Bridge());</code></pre>
+<p>The <code>Symbol.for</code> guard is a safety net: if Module Federation ever loads the package twice, everyone still gets the same instance.</p>
+
+<h3>2. Module Federation: share the bridge, not React</h3>
+<div class="fn">rsbuild.config.ts (host and every remote)</div>
+<pre><code>import { defineConfig } from "@rsbuild/core";
+import { pluginReact } from "@rsbuild/plugin-react";
+import { pluginModuleFederation } from "@module-federation/rsbuild-plugin";
+
+export default defineConfig({
+  plugins: [
+    pluginReact(),
+    pluginModuleFederation({
+      name: "content_ui",                 // host: name + remotes; remote: name + exposes
+      exposes: { "./mount": "./src/mount.tsx" },
+      shared: {
+        // shared, singleton, React-free
+        "@acme/copilot-bridge": { singleton: true, requiredVersion: "^1.0.0" },
+        "@copilotkit/core":     { singleton: true, requiredVersion: "^2.0.0" },
+
+        // do NOT list react / react-dom / @copilotkit/react-core here.
+        // each app bundles its own copy, so 19.2.8 / 19.2.9 / 19.3.1 coexist.
+      },
+    }),
+  ],
+});</code></pre>
+<p>Rsbuild’s plugin is the Module Federation 2.0 runtime, so the <code>shared</code> options behave as described here. By default the plugin shares nothing, which is what you want for React in option B. For option A, you would add <code>react</code>, <code>react-dom</code> and <code>@copilotkit/react-core</code> with <code>singleton: true</code> and a range such as <code>^19.2.0</code>.</p>
+<p>If the Host should still share React with itself only, leave it out of <code>shared</code> too. Each remote mounts with its own <code>createRoot</code>, which is already the normal pattern for remotes that export a <code>mount</code> function.</p>
+
+<h3>3. Content UI: register through a thin hook</h3>
+<div class="fn">content-ui/src/useBridge.ts</div>
+<pre><code>import { useEffect } from "react";               // Content’s own React
+import { bridge } from "@acme/copilot-bridge";
+
+export function useBridgeContext(scope: string, description: string, value: unknown) {
+  useEffect(() =&gt; bridge.registerContext(scope, { description, value }),
+            [scope, description, JSON.stringify(value)]);
+}
+export function useBridgeTool(scope: string, tool: Parameters&lt;typeof bridge.registerTool&gt;[1]) {
+  useEffect(() =&gt; bridge.registerTool(scope, tool), [scope, tool.name]);
+}</code></pre>
+<p>The returned function is the cleanup, so leaving a page removes its context and tools automatically. The Host also calls <code>bridge.clearScope(oldScope)</code> on menu change as a backstop.</p>
+
+<h3>4. Components: export <code>mount</code>, not a React component</h3>
+<div class="fn">content-ui/src/components/ChartCard.tsx</div>
+<pre><code>import { createRoot } from "react-dom/client";   // Content’s own react-dom
+
+export const chartCard: MountableComponent = {
+  name: "ChartCard",
+  schema: { type: "object", properties: { series: { type: "array" } } },
+  mount(el, props) {
+    const root = createRoot(el);
+    root.render(&lt;ChartCard {...props} /&gt;);       // runs entirely in React 19.2.8
+    return () =&gt; root.unmount();
+  },
+};
+// in the page: useEffect(() =&gt; bridge.registerComponent(scope, chartCard), []);</code></pre>
+
+<h3>5. AI Panel: read from the agent and host mounted components</h3>
+<div class="fn">ai-panel/src/MountedComponent.tsx</div>
+<pre><code>import { useEffect, useRef } from "react";        // Panel’s own React
+import { bridge } from "@acme/copilot-bridge";
+
+export function MountedComponent({ name, props }: { name: string; props: any }) {
+  const ref = useRef&lt;HTMLDivElement&gt;(null);
+  useEffect(() =&gt; {
+    const c = bridge.components.get(name);
+    if (!c || !ref.current) return;
+    return c.mount(ref.current, props);            // cleanup = unmount
+  }, [name, JSON.stringify(props)]);
+  return &lt;div ref={ref} /&gt;;
+}</code></pre>
+<p>For the chat itself, use CopilotKit’s React hooks inside the AI Panel only. They run against the panel’s own React. If the v2 provider can accept an existing core, pass <code>bridge.core</code> to it. If it creates its own core, let the panel own the provider and have the bridge forward registrations to that core, buffering anything registered before the panel is ready.</p>
+
+<h2>Menu switching</h2>
+<ol>
+<li>Host sets <code>scope = menuItemId</code> and loads that Content UI remote.</li>
+<li>Content UI mounts, and its hooks register context, tools and components under that scope.</li>
+<li>Host menu change unmounts the old remote. Cleanups fire, then Host calls <code>clearScope(oldScope)</code>.</li>
+<li>AI Panel never unmounts. It sees the registry change through the bridge and the next agent run uses the new tools and context.</li>
+</ol>
+<div class="warn"><strong>Race to guard against:</strong> if the old tool is still registered when the new page mounts, two tools can share a name. Give tools unique names or prefix them with the scope, and clear the old scope before loading the new remote.</div>
+
+<h2>Rules that keep it working</h2>
+<ul>
+<li><strong>Nothing React crosses the bridge.</strong> No elements, hooks, refs, contexts or components. Only plain data, functions and <code>mount()</code>.</li>
+<li><strong>Schemas as JSON Schema.</strong> If apps use different zod versions, pass JSON Schema over the bridge so version differences don’t matter.</li>
+<li><strong>Context values must serialize.</strong> The agent reads JSON, so keep functions and class instances out.</li>
+<li><strong>Version the contract.</strong> Bump the bridge’s major version when the registry shape changes, and use <code>requiredVersion</code> so a mismatch fails loudly.</li>
+<li><strong>Styles.</strong> Components mounted in the panel bring their own CSS. Use CSS modules or a scoped prefix so they don’t leak into the chat UI.</li>
+<li><strong>Test pair.</strong> Add one end-to-end test: switch menu, assert tools change, trigger a tool that renders a component, assert it unmounts cleanly.</li>
+</ul>
+<p>Treat the code above as a starting skeleton. The shape of the design is what matters: one React-free singleton, per-app React adapters, scoped registration and <code>mount()</code> for components.</p>
+</main>
+</body>
+</html>
